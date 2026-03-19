@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lume Dashboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+    <div id="app" class="max-w-md mx-auto p-5">
+        
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 id="complex-name" class="text-xl font-bold text-blue-400 font-mono">LUME</h1>
+                <p id="user-info" class="text-sm text-slate-400">Загрузка...</p>
+            </div>
+            <div class="bg-slate-800 p-2 rounded-lg text-center">
+                <span id="temp" class="text-2xl font-bold block">--°</span>
+                <span class="text-[10px] uppercase text-slate-500">Погода</span>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl shadow-xl mb-6">
+            <p class="text-blue-100 text-sm opacity-80">Общий долг</p>
+            <h2 id="total-debt" class="text-4xl font-bold mt-1">0.00 €</h2>
+            <div class="flex justify-between mt-4 pt-4 border-t border-white/10 text-sm">
+                <span>Обслуживание: <b id="maint-debt">0€</b></span>
+                <span>Вода: <b id="water-debt">0€</b></span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <button class="bg-slate-800 p-4 rounded-2xl text-left border border-slate-700">
+                <span class="block text-2xl mb-1">🛠</span>
+                <span class="text-sm font-semibold">Сервис</span>
+            </button>
+            <button class="bg-slate-800 p-4 rounded-2xl text-left border border-slate-700">
+                <span class="block text-2xl mb-1">📄</span>
+                <span class="text-sm font-semibold">Счета</span>
+            </button>
+        </div>
+
+        <button id="main-btn" class="w-full bg-white text-black py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
+            СОЗДАТЬ ЗАЯВКУ
+        </button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // ССЫЛКА НА ТВОЙ БОТ-СЕРВЕР (замени на свой IP или домен после деплоя)
+        const API_URL = "http://твой_ip_сервера:8080/api/data";
+
+        async function loadData() {
+            const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; // Твой ID для теста
+            // В реальности complex_id мы передадим через URL из бота
+            const urlParams = new URLSearchParams(window.location.search);
+            const complex_id = urlParams.get('complex_id');
+
+            try {
+                const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Заполняем данные на странице
+                document.getElementById('complex-name').innerText = data.complex_name;
+                document.getElementById('user-info').innerText = `${data.user_name} | Апт. ${data.apt}`;
+                document.getElementById('temp').innerText = data.weather.temp;
+                document.getElementById('total-debt').innerText = `${data.finance.total} €`;
+                document.getElementById('maint-debt').innerText = `${data.finance.maintenance}€`;
+                document.getElementById('water-debt').innerText = `${data.finance.water}€`;
+
+            } catch (err) {
+                console.error("Ошибка загрузки:", err);
+                document.getElementById('user-info').innerText = "Ошибка связи с сервером";
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
