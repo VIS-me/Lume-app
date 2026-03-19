@@ -49,26 +49,39 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.ready();
 
-        // ССЫЛКА НА ТВОЙ БОТ-СЕРВЕР (замени на свой IP или домен после деплоя)
+        // ССЫЛКА НА ТВОЙ БОТ-СЕРВЕР (ngrok)
         const API_URL = "https://sinuate-inez-proempire.ngrok-free.dev/api/data";
 
         async function loadData() {
-            const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; // Твой ID для теста
-            // В реальности complex_id мы передадим через URL из бота
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Получаем параметры из URL или из WebApp данных
             const complex_id = urlParams.get('complex_id');
+            const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; 
+
+            if (!complex_id) {
+                console.error("Complex ID missing");
+                document.getElementById('user-info').innerText = "Ошибка: ЖК не определен";
+                return;
+            }
 
             try {
                 const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 if (data.error) throw new Error(data.error);
 
                 // Заполняем данные на странице
-                document.getElementById('complex-name').innerText = data.complex_name;
+                document.getElementById('complex-name').innerText = data.complex_name || "LUME";
                 document.getElementById('user-info').innerText = `${data.user_name} | Апт. ${data.apt}`;
-                document.getElementById('temp').innerText = data.weather.temp;
+                document.getElementById('temp').innerText = data.weather.temp || "--°";
                 document.getElementById('total-debt').innerText = `${data.finance.total} €`;
                 document.getElementById('maint-debt').innerText = `${data.finance.maintenance}€`;
                 document.getElementById('water-debt').innerText = `${data.finance.water}€`;
@@ -79,6 +92,7 @@
             }
         }
 
+        // Запускаем загрузку данных
         loadData();
     </script>
 </body>
