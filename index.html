@@ -11,7 +11,7 @@
     <div id="app" class="max-w-md mx-auto p-5">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 id="complex-name" class="text-xl font-bold text-blue-400 font-mono">LUME</h1>
+                <h1 id="complex-name" class="text-xl font-bold text-blue-400 font-mono">LUME<sup class="text-[10px] ml-0.5 font-normal">©</sup></h1>
                 <p id="user-info" class="text-sm text-slate-400">Загрузка...</p>
             </div>
             <div class="bg-slate-800 p-2 rounded-lg text-center">
@@ -63,7 +63,6 @@
             }
 
             try {
-                // Добавлен заголовок ngrok-skip-browser-warning
                 const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
                     headers: {
                         'ngrok-skip-browser-warning': 'true'
@@ -75,7 +74,10 @@
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
 
-                document.getElementById('complex-name').innerText = data.complex_name || "LUME";
+                // ОБНОВЛЕНО: Подставляем название ЖК и добавляем значок © сверху через .innerHTML
+                const name = data.complex_name || "LUME";
+                document.getElementById('complex-name').innerHTML = `${name}<sup class="text-[10px] ml-0.5 font-normal">©</sup>`;
+
                 document.getElementById('user-info').innerText = `${data.user_name} | Апт. ${data.apt}`;
                 document.getElementById('temp').innerText = data.weather.temp || "--°";
                 document.getElementById('total-debt').innerText = `${data.finance.total} €`;
