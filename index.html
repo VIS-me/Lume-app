@@ -14,27 +14,44 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         #modal-overlay {
-            background: rgba(15, 17, 26, 0.92);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 17, 26, 0.95);
+            backdrop-filter: blur(12px);
             display: none;
         }
         .modal-content {
-            background: rgba(30, 41, 59, 0.98);
+            background: rgba(30, 41, 59, 1);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .finance-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 12px 0;
-        }
-        .finance-item:last-child { border-bottom: none; }
-        
-        /* Анимация переключения экранов */
         .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .nav-btn.active { color: #3b82f6; }
-        .nav-btn.active span:first-child { transform: scale(1.1); transition: 0.2s; }
+        /* Стили для чек-листа как на эскизе */
+        .checklist-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        .checklist-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: white;
+            font-size: 12px;
+            width: 80px;
+            text-align: right;
+        }
     </style>
 </head>
 <body class="bg-[#0f111a] text-white font-sans min-h-screen pb-28">
@@ -103,47 +120,32 @@
             </div>
             
             <div class="space-y-4">
-                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Активные</p>
-                <div id="active-tasks-list" class="text-center py-8 glass-card rounded-3xl text-slate-600 text-xs italic">
-                    Нет активных заявок
-                </div>
-                
-                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest pt-4">Архив</p>
-                <div id="archive-tasks-list" class="text-center py-4 text-slate-700 text-xs">
-                    История пуста
+                <div id="active-tasks-list" class="space-y-3">
+                    <div class="glass-card rounded-3xl p-5 border-l-4 border-l-blue-500">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] font-bold text-blue-400 uppercase">В работе</span>
+                            <span class="text-[10px] text-slate-500">23.03 14:20</span>
+                        </div>
+                        <p class="text-sm font-medium">Ремонт смесителя в ванной</p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="page-profile" class="page">
-            <div class="glass-card rounded-[2.5rem] p-6 mb-6">
-                <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-4 opacity-70 italic text-center">Финансовый отчет</p>
-                <div class="text-center mb-8">
-                    <h3 class="text-3xl font-black text-white"><span id="p-total-debt">0.00</span> <span class="currency">€</span></h3>
-                    <p class="text-[10px] text-slate-500 uppercase mt-1">Общая задолженность</p>
-                </div>
-                
-                <div class="space-y-1">
-                    <div class="finance-item flex justify-between text-sm">
-                        <span class="text-slate-400">Обслуживание</span>
-                        <span class="font-bold"><span id="p-debt-maintenance">0.00</span> <span class="currency">€</span></span>
-                    </div>
-                    <div class="finance-item flex justify-between text-sm">
-                        <span class="text-slate-400">Вода / Эл.</span>
-                        <span class="font-bold"><span id="p-debt-water">0.00</span> <span class="currency">€</span></span>
-                    </div>
-                    <div class="finance-item flex justify-between text-sm">
-                        <span class="text-slate-400">Гараж</span>
-                        <span class="font-bold"><span id="p-debt-garage">0.00</span> <span class="currency">€</span></span>
-                    </div>
-                </div>
+            <div class="glass-card rounded-[2.5rem] p-6 mb-6 text-center">
+                <div id="profile-avatar" class="w-20 h-20 bg-blue-500/20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">👤</div>
+                <h3 id="profile-name" class="text-xl font-bold">--</h3>
+                <p id="profile-role" class="text-[10px] text-blue-400 font-black uppercase tracking-widest">Resident</p>
             </div>
 
-            <div class="glass-card rounded-3xl p-6">
-                 <button onclick="openModal('support')" class="w-full flex justify-between items-center text-sm font-bold">
-                    <span>✉️ Поддержка приложения</span>
-                    <span class="text-slate-600">→</span>
-                 </button>
+            <div class="glass-card rounded-[2.5rem] p-6 mb-6">
+                <div class="space-y-1">
+                    <div class="finance-item flex justify-between text-sm">
+                        <span class="text-slate-400">Общий долг:</span>
+                        <span class="font-bold text-white"><span id="p-total-debt">0.00</span> €</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -152,12 +154,12 @@
     <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
         <div class="modal-content w-full rounded-t-[3rem] p-8 pb-12 shadow-2xl translate-y-0 transition-transform" onclick="event.stopPropagation()">
             <div id="modal-body"></div>
-            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">Назад</button>
+            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">Закрыть</button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/95 backdrop-blur-2xl border-t border-white/5 px-10 py-6 flex justify-between items-center z-50">
-        <button onclick="switchPage('home')" id="nav-home" class="nav-btn flex flex-col items-center active">
+        <button onclick="switchPage('home')" id="nav-home" class="nav-btn flex flex-col items-center text-blue-500 active">
             <span class="text-xl">🏠</span>
             <span class="text-[8px] mt-1 font-black uppercase">Home</span>
         </button>
@@ -181,13 +183,13 @@
 
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('text-blue-500', 'active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-slate-700'));
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-500');
+                b.classList.add('text-slate-700');
+            });
 
             document.getElementById('page-' + pageId).classList.add('active');
-            const activeBtn = document.getElementById('nav-' + pageId);
-            activeBtn.classList.add('text-blue-500', 'active');
-            activeBtn.classList.remove('text-slate-700');
+            document.getElementById('nav-' + pageId).classList.replace('text-slate-700', 'text-blue-500');
         }
 
         async function loadData() {
@@ -202,7 +204,6 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                // Главная
                 document.getElementById('user-greeting').innerText = `Hello, ${data.user_name}!`;
                 document.getElementById('complex-display-name').innerText = data.complex_name;
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
@@ -211,18 +212,11 @@
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
                 document.getElementById('weather-time').innerText = data.weather.time ? data.weather.time.split(' ')[1] : "--:--";
                 
-                // Профиль (Финансы)
+                document.getElementById('profile-name').innerText = data.user_name;
+                document.getElementById('profile-role').innerText = data.role;
                 document.getElementById('p-total-debt').innerText = data.finance.total;
-                document.getElementById('p-debt-maintenance').innerText = data.finance.maintenance;
-                document.getElementById('p-debt-water').innerText = data.finance.water;
-                document.getElementById('p-debt-garage').innerText = data.finance.garage;
 
-                // Валюта
-                document.querySelectorAll('.currency').forEach(el => el.innerText = data.finance.currency);
-
-                // Права доступа
-                const privileged = ['engineer', 'director', 'administrator', 'staff'];
-                if (privileged.includes(data.role)) {
+                if (['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
                     document.getElementById('admin-block').classList.remove('hidden');
                 }
 
@@ -230,7 +224,6 @@
                 document.getElementById('status-label').classList.replace('text-blue-400', 'text-green-400');
             } catch (err) {
                 document.getElementById('status-label').innerText = "Offline";
-                document.getElementById('status-label').classList.replace('text-blue-400', 'text-red-400');
             }
         }
 
@@ -238,54 +231,48 @@
             const body = document.getElementById('modal-body');
             let html = "";
 
-            if (type === 'emergency') {
-                html = `<h2 class="text-xl font-bold mb-6 text-center italic">🚨 Экстренные службы</h2><div class="grid grid-cols-1 gap-3">`;
-                if (cachedData?.emergency) {
-                    cachedData.emergency.forEach(item => {
-                        html += `<a href="tel:${item.Number}" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 font-bold italic">
-                            <span>${item.Service}</span><span>${item.Number}</span></a>`;
-                    });
-                }
-                html += `</div>`;
-            } 
-            else if (type === 'uk') {
-                const manager = cachedData?.management || {};
-                html = `<div class="text-center"><h2 class="text-xl font-bold mb-2 italic">🏢 Администрация</h2>
-                    <p class="text-xs text-slate-400 mb-8 font-mono">${manager.Director || 'Lume Management'}</p>
-                    <a href="https://t.me/${manager.Telegram || 'manager'}" class="block p-5 bg-blue-600 rounded-2xl text-white font-black uppercase text-xs tracking-widest">Открыть чат</a>
-                </div>`;
-            }
-            else if (type === 'create-order') {
-                html = `<h2 class="text-xl font-bold mb-6 text-center italic">📝 Новая заявка</h2>
-                    <select id="order-cat" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-sm text-white outline-none">
-                        <option value="">Выберите категорию...</option>
-                        ${cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('')}
-                    </select>
-                    <textarea id="order-desc" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl h-32 mb-4 text-sm outline-none" placeholder="Опишите проблему..."></textarea>
-                    <button class="w-full p-5 bg-blue-600 rounded-2xl text-white font-black uppercase text-xs">Отправить</button>`;
-            }
-            else if (type === 'management') {
-                html = `<h2 class="text-xl font-bold mb-8 text-center italic">⚙️ Панель управления</h2>
+            if (type === 'management') {
+                html = `<h2 class="text-xl font-bold mb-8 text-center italic">⚙️ Управление</h2>
                     <div class="space-y-3">
+                        ${cachedData?.role === 'engineer' ? `
+                        <button onclick="openModal('checklist')" class="w-full p-5 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-left flex justify-between items-center">
+                            <span class="text-xs font-bold uppercase text-blue-400">📋 Технический чек-лист</span><span class="text-blue-400">→</span>
+                        </button>` : ''}
                         <button class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-left flex justify-between items-center">
-                            <span class="text-xs font-bold uppercase">📊 Должники</span><span class="text-slate-500">→</span>
+                            <span class="text-xs font-bold uppercase">📊 Финансы ЖК</span><span class="text-slate-500">→</span>
                         </button>
-                        <button class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-left flex justify-between items-center">
-                            <span class="text-xs font-bold uppercase">🛠 Заявки в работе</span><span class="text-slate-500">→</span>
-                        </button>`;
-                // Кнопка Чек-лист только для Инженера
-                if (cachedData?.role === 'engineer') {
-                    html += `<button class="w-full p-5 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-left flex justify-between items-center">
-                        <span class="text-xs font-bold uppercase text-blue-400">📋 Технический чек-лист</span><span class="text-blue-400">→</span>
-                    </button>`;
-                }
-                html += `</div>`;
+                    </div>`;
+            } 
+            else if (type === 'checklist') {
+                // РЕАЛИЗАЦИЯ ЭСКИЗА 5255
+                html = `<h2 class="text-xl font-bold mb-2 text-center">Технический осмотр</h2>
+                    <p class="text-[10px] text-slate-500 uppercase text-center mb-6 tracking-widest">Daily Maintenance</p>
+                    <div class="space-y-2">
+                        <div class="checklist-item">
+                            <div><p class="text-sm">Давление в системе</p><p class="text-[10px] text-slate-500">Норма: 2.0 - 2.5 bar</p></div>
+                            <input type="text" class="checklist-input" placeholder="bar">
+                        </div>
+                        <div class="checklist-item">
+                            <p class="text-sm">Освещение паркинга</p>
+                            <input type="checkbox">
+                        </div>
+                        <div class="checklist-item">
+                            <p class="text-sm">Работа лифтов</p>
+                            <input type="checkbox">
+                        </div>
+                        <div class="checklist-item">
+                            <div><p class="text-sm">Уровень воды в баке</p><p class="text-[10px] text-slate-500">Метры</p></div>
+                            <input type="text" class="checklist-input" placeholder="m">
+                        </div>
+                    </div>
+                    <button class="w-full mt-8 p-5 bg-green-600 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest">Сохранить отчет</button>`;
             }
-            else if (type === 'support') {
-                html = `<div class="text-center"><h2 class="text-xl font-bold mb-4 italic">✉️ Поддержка</h2>
-                    <p class="text-xs text-slate-500 mb-8">Возникли технические проблемы? Напишите нам.</p>
-                    <a href="mailto:support@lume.me" class="block p-5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold italic">support@lume.me</a>
-                </div>`;
+            else if (type === 'emergency') {
+                html = `<h2 class="text-xl font-bold mb-6 text-center italic text-red-400">🚨 Экстренные службы</h2>
+                    <div class="space-y-3">
+                        <a href="tel:122" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 font-bold italic"><span>Полиция</span><span>122</span></a>
+                        <a href="tel:123" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 font-bold italic"><span>Пожарные</span><span>123</span></a>
+                    </div>`;
             }
 
             body.innerHTML = html;
