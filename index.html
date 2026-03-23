@@ -87,7 +87,7 @@
         <div class="glass-card w-[85%] max-w-xs rounded-[2.5rem] p-8 relative">
             <button onclick="closeModal()" class="absolute top-5 right-6 text-slate-500 text-xl">✕</button>
             <div id="modal-content" class="text-center pt-2">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -126,11 +126,12 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                document.getElementById('complex-display-name').innerText = data.complex_name;
-                document.getElementById('city-name').innerText = data.weather.city;
-                document.getElementById('temp').innerText = (data.weather.temp || "--") + "°";
-                document.getElementById('hum').innerText = (data.weather.hum || "--") + "%";
-                document.getElementById('wind').innerText = (data.weather.wind || "--") + " м/с";
+                // Исправлено: добавлена проверка через ?. чтобы не ломать скрипт
+                document.getElementById('complex-display-name').innerText = data.complex_name || "Lume Residence";
+                document.getElementById('city-name').innerText = data.weather?.city || "Unknown City";
+                document.getElementById('temp').innerText = (data.weather?.temp || "--") + "°";
+                document.getElementById('hum').innerText = (data.weather?.hum || "--") + "%";
+                document.getElementById('wind').innerText = (data.weather?.wind || "--") + " м/с";
                 
             } catch (err) { 
                 console.error(err);
@@ -160,12 +161,13 @@
                     <button onclick="tg.openTelegramLink('${tgLink}')" class="w-full bg-blue-500 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest">Открыть чат</button>
                 `;
             } else if (type === 'support') {
-                // ТВОЯ ССЫЛКА НА ПОЛИТИКУ
                 const privacyUrl = "https://docs.google.com/document/d/1t85qQ-I8-T5A_AitY7-0wM_8Uj06DoxD3kZlD4T4mUo/edit?tab=t.0";
                 content.innerHTML = `
                     <h3 class="text-slate-300 font-bold mb-4 uppercase tracking-widest text-xs">Поддержка</h3>
-                    <p class="text-slate-400 text-[11px] mb-6 leading-relaxed font-medium">Нажимая на кнопку ниже, вы переходите к юридическим документам сервиса:</p>
-                    <button onclick="tg.openLink('${privacyUrl}')" class="w-full bg-white/10 border border-white/10 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest text-blue-400 underline">Политика конфиденциальности</button>
+                    <p class="text-slate-400 text-[11px] mb-6 leading-relaxed font-medium">Для ознакомления с документами нажмите на ссылку:</p>
+                    <div class="py-2">
+                        <a href="javascript:void(0)" onclick="tg.openLink('${privacyUrl}')" class="text-blue-400 underline font-bold text-sm tracking-tight">Политика конфиденциальности</a>
+                    </div>
                 `;
             }
         }
