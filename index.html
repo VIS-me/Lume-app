@@ -60,16 +60,17 @@
         </div>
 
         <div class="glass-card rounded-[2.5rem] p-6 mb-6">
-            <h3 class="text-slate-500 text-[10px] uppercase tracking-[0.2em] mb-5 font-black text-center">Сервис и Контакты</h3>
             <div class="space-y-3">
                 <button onclick="openModal('emergency')" class="w-full flex items-center bg-red-500/5 border border-red-500/10 p-4 rounded-2xl active:scale-[0.97] transition-all">
                     <span class="text-xl mr-4">⚠️</span>
                     <span class="text-sm font-bold text-red-400 uppercase tracking-tight">Экстренные телефоны</span>
                 </button>
+
                 <button onclick="openModal('uk')" class="w-full flex items-center bg-white/5 border border-white/5 p-4 rounded-2xl active:scale-[0.97] transition-all">
                     <span class="text-xl mr-4">📱</span>
                     <span class="text-sm font-bold text-slate-200 uppercase tracking-tight">Управляющая компания</span>
                 </button>
+
                 <button onclick="openModal('support')" class="w-full flex items-center bg-white/5 border border-white/5 p-4 rounded-2xl active:scale-[0.97] transition-all">
                     <span class="text-xl mr-4">✉️</span>
                     <span class="text-sm font-bold text-slate-200 uppercase tracking-tight">Поддержка</span>
@@ -78,7 +79,7 @@
         </div>
 
         <div id="admin-block" class="hidden">
-            <button class="glass-card w-full rounded-[2rem] p-5 flex items-center justify-between border-blue-500/20">
+            <button class="glass-card w-full rounded-[2rem] p-5 flex items-center justify-between border-blue-500/20 active:scale-[0.97] transition-all">
                 <div class="flex items-center">
                     <span class="text-xl mr-4">🔑</span>
                     <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Admin Panel</span>
@@ -95,6 +96,21 @@
         </div>
     </div>
 
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/90 backdrop-blur-xl border-t border-white/5 px-12 py-6 flex justify-between items-center z-50">
+        <button class="flex flex-col items-center text-blue-500">
+            <span class="text-xl">🏠</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Home</span>
+        </button>
+        <button class="flex flex-col items-center text-slate-700">
+            <span class="text-xl">📋</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Tasks</span>
+        </button>
+        <button class="flex flex-col items-center text-slate-700">
+            <span class="text-xl">👤</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Profile</span>
+        </button>
+    </nav>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -102,7 +118,6 @@
 
         const API_URL = "https://sinuate-inez-proempire.ngrok-free.dev/api/data";
 
-        // Хранилище для динамических контактов
         let dynamicContacts = {
             tg: "https://t.me/manager_lume",
             email: "support@lume.me"
@@ -119,21 +134,17 @@
                 });
                 const data = await response.json();
                 
-                // 1. Обновляем погоду и ЖК
                 document.getElementById('complex-display-name').innerText = data.complex_name || "LUME";
-                document.getElementById('city-name').innerText = data.weather.city || "Локация...";
+                document.getElementById('city-name').innerText = data.weather.city || "Location...";
                 document.getElementById('temp').innerText = (data.weather.temp || "--") + "°";
                 document.getElementById('humidity').innerText = (data.weather.hum || "--") + "%";
                 document.getElementById('wind').innerText = (data.weather.wind || "--") + " м/с";
                 
-                // 2. Сохраняем контакты для модалок
                 dynamicContacts.tg = data.contacts?.tg_link || dynamicContacts.tg;
                 dynamicContacts.email = data.contacts?.email || dynamicContacts.email;
 
-                // 3. Статус
                 document.getElementById('status-label').innerText = "Live";
 
-                // 4. Роль
                 if (data.role === 'director' || data.role === 'engineer') {
                     document.getElementById('admin-block').classList.remove('hidden');
                 }
