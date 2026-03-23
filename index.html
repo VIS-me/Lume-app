@@ -6,44 +6,111 @@
     <title>Lume Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Дополнительные стили для нежного свечения */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(251, 191, 36, 0.1); /* Золотистая граница 10% */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .gold-glow {
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-white font-sans">
+<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
     <div id="app" class="max-w-md mx-auto p-5">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h1 id="complex-name" class="text-xl font-bold text-blue-400 font-mono">LUME<sup class="text-[10px] ml-0.5 font-normal">©</sup></h1>
-                <p id="user-info" class="text-sm text-slate-400">Загрузка...</p>
-            </div>
-            <div class="bg-slate-800 p-2 rounded-lg text-center">
-                <span id="temp" class="text-2xl font-bold block">--°</span>
-                <span class="text-[10px] uppercase text-slate-500">Погода</span>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl shadow-xl mb-6">
-            <p class="text-blue-100 text-sm opacity-80">Общий долг</p>
-            <h2 id="total-debt" class="text-4xl font-bold mt-1">0.00 €</h2>
-            <div class="flex justify-between mt-4 pt-4 border-t border-white/10 text-sm">
-                <span>Обслуживание: <b id="maint-debt">0€</b></span>
-                <span>Вода: <b id="water-debt">0€</b></span>
+        
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-amber-400 font-mono gold-glow">
+                LUME<sup class="text-xs ml-0.5 font-normal">©</sup>
+            </h1>
+            <div id="status-dot" class="flex items-center text-[10px] text-slate-500 uppercase tracking-widest">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                Online
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <button class="bg-slate-800 p-4 rounded-2xl text-left border border-slate-700">
-                <span class="block text-2xl mb-1">🛠</span>
-                <span class="text-sm font-semibold">Сервис</span>
+        <div class="glass-card rounded-[2rem] p-6 mb-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-amber-400/80 text-xs font-bold uppercase tracking-wider mb-1">Welcome!</p>
+                    <h2 id="complex-display-name" class="text-xl font-semibold">Загрузка...</h2>
+                    <p id="city-name" class="text-slate-400 text-sm italic">Локация...</p>
+                </div>
+                <div class="text-right">
+                    <span id="temp" class="text-4xl font-light tracking-tighter">--°</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 text-slate-300">
+                <div class="flex items-center text-sm">
+                    <span class="mr-2">💧</span>
+                    <span id="humidity">--%</span>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span class="mr-2">💨</span>
+                    <span id="wind">-- м/с</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-[2rem] p-6 mb-6">
+            <h3 class="text-slate-400 text-[10px] uppercase tracking-[0.2em] mb-4">Контакты и Поддержка</h3>
+            
+            <div class="space-y-4">
+                <a href="#" id="uk-tg" class="flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <span class="bg-amber-400/10 p-2 rounded-lg mr-3 group-active:scale-90 transition-transform">📱</span>
+                        <span class="text-sm font-medium">Управляющая компания</span>
+                    </div>
+                    <span class="text-slate-500">→</span>
+                </a>
+
+                <a href="#" id="uk-email" class="flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <span class="bg-amber-400/10 p-2 rounded-lg mr-3 group-active:scale-90 transition-transform">✉️</span>
+                        <span class="text-sm font-medium italic" id="email-text">mail@lume.com</span>
+                    </div>
+                    <span class="text-slate-500">→</span>
+                </a>
+
+                <button onclick="alert('Вызов экстренных служб...')" class="w-full mt-2 bg-red-500/10 border border-red-500/20 text-red-400 py-3 rounded-xl text-xs font-bold uppercase tracking-widest">
+                    ⚠️ Экстренные телефоны
+                </button>
+            </div>
+        </div>
+
+        <div id="admin-block" class="hidden animate-fade-in">
+            <button class="glass-card w-full rounded-2xl p-5 flex items-center justify-between border-amber-400/30">
+                <div class="flex items-center">
+                    <span class="text-xl mr-4">🔑</span>
+                    <div class="text-left">
+                        <span class="block text-sm font-bold text-amber-400">Панель управления</span>
+                        <span class="text-[10px] text-slate-500">Доступ: Director / Engineer</span>
+                    </div>
+                </div>
+                <span class="bg-amber-400 text-black text-[10px] px-2 py-1 rounded font-bold italic">STAFF</span>
             </button>
-            <button class="bg-slate-800 p-4 rounded-2xl text-left border border-slate-700">
-                <span class="block text-2xl mb-1">📄</span>
-                <span class="text-sm font-semibold">Счета</span>
-            </button>
         </div>
 
-        <button id="main-btn" class="w-full bg-white text-black py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
-            СОЗДАТЬ ЗАЯВКУ
-        </button>
     </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-lg border-t border-white/5 px-8 py-4 flex justify-between items-center z-50">
+        <button class="flex flex-col items-center text-amber-400">
+            <span class="text-xl">🏠</span>
+            <span class="text-[10px] mt-1 font-bold uppercase">Главная</span>
+        </button>
+        <button class="flex flex-col items-center text-slate-500 opacity-50">
+            <span class="text-xl">📋</span>
+            <span class="text-[10px] mt-1 font-bold uppercase">Заявки</span>
+        </button>
+        <button class="flex flex-col items-center text-slate-500 opacity-50">
+            <span class="text-xl">👤</span>
+            <span class="text-[10px] mt-1 font-bold uppercase">Профиль</span>
+        </button>
+    </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -57,36 +124,32 @@
             const complex_id = urlParams.get('complex_id');
             const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; 
 
-            if (!complex_id) {
-                document.getElementById('user-info').innerText = "Ошибка: ЖК не определен";
-                return;
-            }
-
             try {
                 const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 
-                if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
-
                 const data = await response.json();
-                if (data.error) throw new Error(data.error);
+                
+                // Наполняем данными
+                document.getElementById('complex-display-name').innerText = data.complex_name || "LUME";
+                document.getElementById('city-name').innerText = data.weather.city || "Montenegro";
+                document.getElementById('temp').innerText = (data.weather.temp || "--") + "°";
+                document.getElementById('humidity').innerText = (data.weather.hum || "--") + "%";
+                document.getElementById('wind').innerText = (data.weather.wind || "0") + " м/с";
+                
+                // Контакты
+                document.getElementById('uk-tg').href = data.contacts.tg_link || "#";
+                document.getElementById('uk-email').href = "mailto:" + (data.contacts.email || "");
+                document.getElementById('email-text').innerText = data.contacts.email || "support@lume.me";
 
-                // ОБНОВЛЕНО: Подставляем название ЖК и добавляем значок © сверху через .innerHTML
-                const name = data.complex_name || "LUME";
-                document.getElementById('complex-name').innerHTML = `${name}<sup class="text-[10px] ml-0.5 font-normal">©</sup>`;
-
-                document.getElementById('user-info').innerText = `${data.user_name} | Апт. ${data.apt}`;
-                document.getElementById('temp').innerText = data.weather.temp || "--°";
-                document.getElementById('total-debt').innerText = `${data.finance.total} €`;
-                document.getElementById('maint-debt').innerText = `${data.finance.maintenance}€`;
-                document.getElementById('water-debt').innerText = `${data.finance.water}€`;
+                // Проверка роли для кнопки управления
+                if (data.role === 'director' || data.role === 'engineer') {
+                    document.getElementById('admin-block').classList.remove('hidden');
+                }
 
             } catch (err) {
-                console.error(err);
-                document.getElementById('user-info').innerText = "Данные не получены";
+                console.error("Ошибка загрузки:", err);
             }
         }
 
