@@ -7,108 +7,115 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Дополнительные стили для нежного свечения */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(251, 191, 36, 0.1); /* Золотистая граница 10% */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(251, 191, 36, 0.08);
         }
-        .gold-glow {
-            text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        /* Стиль модального окна */
+        #modal-overlay {
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
         }
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
-<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
+<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-28 overflow-x-hidden">
+
     <div id="app" class="max-w-md mx-auto p-5">
         
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-bold text-amber-400 font-mono gold-glow">
+            <h1 class="text-2xl font-bold text-[#0088cc] font-mono tracking-tight">
                 LUME<sup class="text-xs ml-0.5 font-normal">©</sup>
             </h1>
-            <div id="status-dot" class="flex items-center text-[10px] text-slate-500 uppercase tracking-widest">
-                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                Online
+            <div class="bg-blue-500/10 px-3 py-1 rounded-full text-[10px] text-blue-400 font-bold uppercase tracking-widest border border-blue-500/20">
+                Live
             </div>
         </div>
 
-        <div class="glass-card rounded-[2rem] p-6 mb-6">
-            <div class="flex justify-between items-start mb-4">
+        <div class="glass-card rounded-[2.5rem] p-6 mb-6">
+            <div class="flex justify-between items-start mb-6">
                 <div>
-                    <p class="text-amber-400/80 text-xs font-bold uppercase tracking-wider mb-1">Welcome!</p>
-                    <h2 id="complex-display-name" class="text-xl font-semibold">Загрузка...</h2>
-                    <p id="city-name" class="text-slate-400 text-sm italic">Локация...</p>
+                    <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1 opacity-70">Welcome!</p>
+                    <h2 id="complex-display-name" class="text-xl font-bold italic">LUME RESIDENCE</h2>
+                    <p id="city-name" class="text-slate-500 text-xs mt-1">Budva, Montenegro</p>
                 </div>
                 <div class="text-right">
-                    <span id="temp" class="text-4xl font-light tracking-tighter">--°</span>
+                    <span id="temp" class="text-4xl font-light tracking-tighter text-white">24°</span>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 text-slate-300">
-                <div class="flex items-center text-sm">
-                    <span class="mr-2">💧</span>
-                    <span id="humidity">--%</span>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 text-slate-400">
+                <div class="flex items-center text-xs">
+                    <span class="mr-2">💧</span> <span id="humidity">--%</span>
                 </div>
-                <div class="flex items-center text-sm">
-                    <span class="mr-2">💨</span>
-                    <span id="wind">-- м/с</span>
+                <div class="flex items-center text-xs">
+                    <span class="mr-2">💨</span> <span id="wind">-- м/с</span>
                 </div>
             </div>
         </div>
 
-        <div class="glass-card rounded-[2rem] p-6 mb-6">
-            <h3 class="text-slate-400 text-[10px] uppercase tracking-[0.2em] mb-4">Контакты и Поддержка</h3>
+        <div class="glass-card rounded-[2.5rem] p-6 mb-6">
+            <h3 class="text-slate-500 text-[10px] uppercase tracking-[0.2em] mb-5 font-black text-center">Сервис и Контакты</h3>
             
-            <div class="space-y-4">
-                <a href="#" id="uk-tg" class="flex items-center justify-between group">
-                    <div class="flex items-center">
-                        <span class="bg-amber-400/10 p-2 rounded-lg mr-3 group-active:scale-90 transition-transform">📱</span>
-                        <span class="text-sm font-medium">Управляющая компания</span>
-                    </div>
-                    <span class="text-slate-500">→</span>
-                </a>
+            <div class="space-y-3">
+                <button onclick="openModal('emergency')" class="w-full flex items-center bg-red-500/5 border border-red-500/10 p-4 rounded-2xl active:scale-[0.97] transition-all">
+                    <span class="text-xl mr-4">⚠️</span>
+                    <span class="text-sm font-bold text-red-400 uppercase tracking-tight">Экстренные телефоны</span>
+                </button>
 
-                <a href="#" id="uk-email" class="flex items-center justify-between group">
-                    <div class="flex items-center">
-                        <span class="bg-amber-400/10 p-2 rounded-lg mr-3 group-active:scale-90 transition-transform">✉️</span>
-                        <span class="text-sm font-medium italic" id="email-text">mail@lume.com</span>
-                    </div>
-                    <span class="text-slate-500">→</span>
-                </a>
+                <button onclick="openModal('uk')" class="w-full flex items-center bg-white/5 border border-white/5 p-4 rounded-2xl active:scale-[0.97] transition-all">
+                    <span class="text-xl mr-4">📱</span>
+                    <span class="text-sm font-bold text-slate-200 uppercase tracking-tight">Управляющая компания</span>
+                </button>
 
-                <button onclick="alert('Вызов экстренных служб...')" class="w-full mt-2 bg-red-500/10 border border-red-500/20 text-red-400 py-3 rounded-xl text-xs font-bold uppercase tracking-widest">
-                    ⚠️ Экстренные телефоны
+                <button onclick="openModal('support')" class="w-full flex items-center bg-white/5 border border-white/5 p-4 rounded-2xl active:scale-[0.97] transition-all">
+                    <span class="text-xl mr-4">✉️</span>
+                    <span class="text-sm font-bold text-slate-200 uppercase tracking-tight">Поддержка</span>
                 </button>
             </div>
         </div>
 
-        <div id="admin-block" class="hidden animate-fade-in">
-            <button class="glass-card w-full rounded-2xl p-5 flex items-center justify-between border-amber-400/30">
+        <div id="admin-block" class="hidden">
+            <button class="glass-card w-full rounded-[2rem] p-5 flex items-center justify-between border-blue-500/20 active:opacity-70 transition-all">
                 <div class="flex items-center">
                     <span class="text-xl mr-4">🔑</span>
-                    <div class="text-left">
-                        <span class="block text-sm font-bold text-amber-400">Панель управления</span>
-                        <span class="text-[10px] text-slate-500">Доступ: Director / Engineer</span>
-                    </div>
+                    <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Admin Panel</span>
                 </div>
-                <span class="bg-amber-400 text-black text-[10px] px-2 py-1 rounded font-bold italic">STAFF</span>
+                <span class="text-slate-600">→</span>
             </button>
         </div>
-
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-lg border-t border-white/5 px-8 py-4 flex justify-between items-center z-50">
-        <button class="flex flex-col items-center text-amber-400">
+    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center p-6" onclick="closeModal()">
+        <div class="modal-content w-full max-w-xs rounded-[2.5rem] p-8 fade-in shadow-2xl" onclick="event.stopPropagation()">
+            <div id="modal-body" class="text-center">
+                </div>
+            <button onclick="closeModal()" class="w-full mt-8 py-3 rounded-xl bg-white/10 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Закрыть
+            </button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/90 backdrop-blur-xl border-t border-white/5 px-12 py-6 flex justify-between items-center z-50">
+        <button class="flex flex-col items-center text-blue-500">
             <span class="text-xl">🏠</span>
-            <span class="text-[10px] mt-1 font-bold uppercase">Главная</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Home</span>
         </button>
-        <button class="flex flex-col items-center text-slate-500 opacity-50">
+        <button class="flex flex-col items-center text-slate-700">
             <span class="text-xl">📋</span>
-            <span class="text-[10px] mt-1 font-bold uppercase">Заявки</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Tasks</span>
         </button>
-        <button class="flex flex-col items-center text-slate-500 opacity-50">
+        <button class="flex flex-col items-center text-slate-700">
             <span class="text-xl">👤</span>
-            <span class="text-[10px] mt-1 font-bold uppercase">Профиль</span>
+            <span class="text-[9px] mt-1 font-black uppercase tracking-tighter">Profile</span>
         </button>
     </nav>
 
@@ -117,7 +124,39 @@
         tg.expand();
         tg.ready();
 
-        const API_URL = "https://sinuate-inez-proempire.ngrok-free.dev/api/data";
+        const MODAL_DATA = {
+            emergency: {
+                title: "🚨 Экстренные службы",
+                content: `
+                    <div class="space-y-4 mt-4">
+                        <a href="tel:122" class="block p-4 bg-red-500/10 rounded-2xl text-red-400 font-bold">Полиция (122)</a>
+                        <a href="tel:124" class="block p-4 bg-red-500/10 rounded-2xl text-red-400 font-bold">Скорая (124)</a>
+                        <a href="tel:123" class="block p-4 bg-red-500/10 rounded-2xl text-red-400 font-bold">Пожарные (123)</a>
+                    </div>`
+            },
+            uk: {
+                title: "🏢 Менеджер УК",
+                content: `
+                    <p class="text-slate-400 text-sm mb-6">Свяжитесь с нами в Telegram для решения бытовых вопросов</p>
+                    <a href="https://t.me/manager_lume" class="block p-4 bg-blue-500 rounded-2xl text-white font-bold">Написать в Telegram</a>`
+            },
+            support: {
+                title: "✉️ Поддержка",
+                content: `
+                    <p class="text-slate-400 text-sm mb-6">Техническая поддержка приложения</p>
+                    <a href="mailto:support@lume.me" class="block p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold">Отправить Email</a>`
+            }
+        };
+
+        function openModal(type) {
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `<h2 class="text-xl font-bold mb-2">${MODAL_DATA[type].title}</h2>` + MODAL_DATA[type].content;
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -125,32 +164,20 @@
             const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; 
 
             try {
-                const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
+                const response = await fetch(`https://sinuate-inez-proempire.ngrok-free.dev/api/data?user_id=${user_id}&complex_id=${complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
-                
                 const data = await response.json();
                 
-                // Наполняем данными
                 document.getElementById('complex-display-name').innerText = data.complex_name || "LUME";
-                document.getElementById('city-name').innerText = data.weather.city || "Montenegro";
-                document.getElementById('temp').innerText = (data.weather.temp || "--") + "°";
-                document.getElementById('humidity').innerText = (data.weather.hum || "--") + "%";
+                document.getElementById('temp').innerText = (data.weather.temp || "22") + "°";
+                document.getElementById('humidity').innerText = (data.weather.hum || "0") + "%";
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " м/с";
                 
-                // Контакты
-                document.getElementById('uk-tg').href = data.contacts.tg_link || "#";
-                document.getElementById('uk-email').href = "mailto:" + (data.contacts.email || "");
-                document.getElementById('email-text').innerText = data.contacts.email || "support@lume.me";
-
-                // Проверка роли для кнопки управления
                 if (data.role === 'director' || data.role === 'engineer') {
                     document.getElementById('admin-block').classList.remove('hidden');
                 }
-
-            } catch (err) {
-                console.error("Ошибка загрузки:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         loadData();
