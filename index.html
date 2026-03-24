@@ -180,13 +180,11 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                // Главная
                 document.getElementById('complex-display-name').innerText = data.complex_name;
                 document.getElementById('temp').innerText = data.weather.temp.replace('°C','');
                 document.getElementById('humidity').innerText = data.weather.hum;
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
                 
-                // Профиль
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role;
                 document.getElementById('p-total-debt').innerText = data.finance.total;
@@ -215,7 +213,6 @@
                 html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
                 if (cachedData && cachedData.emergency && cachedData.emergency.length > 0) {
                     cachedData.emergency.forEach(e => {
-                        // Используем ключи Name и Phone из Contacts_Alarm
                         html += `
                         <a href="tel:${e.Phone}" class="flex justify-between items-center p-5 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
                             <span class="text-red-400 font-bold text-sm">${e.Name}</span>
@@ -226,12 +223,10 @@
                     html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
                 }
             } 
-            
             else if (type === 'uk') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
                 if (cachedData && cachedData.management && cachedData.management.length > 0) {
                     cachedData.management.forEach(m => {
-                        // Используем ключи Type и Value из Contacts
                         html += `
                         <div class="p-5 bg-white/5 border border-white/10 rounded-3xl mb-3">
                             <p class="text-[10px] uppercase font-black text-slate-500 mb-1">${m.Type}</p>
@@ -245,7 +240,6 @@
                     html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
                 }
             }
-
             else if (type === 'edit-profile') {
                 html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
                         <p class="text-[10px] text-slate-500 mb-4 uppercase font-black">Contacts for Management</p>
@@ -256,6 +250,12 @@
 
             body.innerHTML = html;
             document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function saveProfile() {
+            // Заглушка для сохранения профиля
+            tg.MainButton.setText("Данные обновлены!").show();
+            setTimeout(() => { tg.MainButton.hide(); closeModal(); }, 2000);
         }
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
