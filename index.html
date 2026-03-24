@@ -3,172 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lume Mini App</title>
+    <title>Lume App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2.5rem;
         }
         #modal-overlay {
-            background: rgba(15, 17, 26, 0.95);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 17, 26, 0.98);
             display: none;
         }
         .modal-content {
             background: rgba(30, 41, 59, 1);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 90vh;
-            overflow-y: auto;
         }
-        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page { display: none; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Стили для чек-листа как на эскизе */
-        .checklist-item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            padding: 15px 0;
+        
+        .task-row {
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
         }
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            accent-color: #3b82f6;
-            cursor: pointer;
-        }
-        .checklist-input {
+        .nav-btn { color: #475569; transition: all 0.2s; }
+        .nav-btn.active { color: #0088cc; }
+
+        input, textarea, select {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 4px 8px;
+            border-radius: 1.2rem;
+            padding: 1rem;
             color: white;
-            font-size: 12px;
-            width: 80px;
-            text-align: right;
+            width: 100%;
+            outline: none;
+        }
+        .finance-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
         }
     </style>
 </head>
-<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-28">
+<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
 
-    <div id="app" class="max-w-md mx-auto p-5">
+    <div id="app" class="max-w-md mx-auto p-6">
         
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-bold text-[#0088cc] font-mono">
-                Lume<sup class="text-xs ml-0.5 font-normal">©</sup>
-            </h1>
-            <div id="status-label" class="bg-blue-500/10 px-3 py-1 rounded-full text-[10px] text-blue-400 font-bold uppercase tracking-widest border border-blue-500/20">
-                Загрузка...
-            </div>
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-bold text-[#0088cc] italic">Lume<sup class="text-[10px] font-normal">©</sup></h1>
+            <div id="status-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/50">System Live</div>
         </div>
 
         <div id="page-home" class="page active">
-            <div class="glass-card rounded-[2.5rem] p-6 mb-6">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <p id="user-greeting" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1 opacity-70">Welcome!</p>
-                        <h2 id="complex-display-name" class="text-xl font-bold italic">--</h2>
-                        <p class="text-slate-500 text-xs mt-1">Апартаменты: <span id="apt-numbers">--</span></p>
+            <div class="glass-card p-8 mb-6">
+                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
+                <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
+                <div class="flex justify-between items-end">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
+                            <p id="humidity" class="text-lg font-bold">--%</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
+                            <p id="wind" class="text-lg font-bold">--</p>
+                        </div>
                     </div>
                     <div class="text-right">
-                        <span id="temp" class="text-4xl font-light tracking-tighter text-white">--°</span>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-3 gap-2 pt-4 border-t border-white/5 text-slate-400">
-                    <div class="flex items-center text-[10px]">
-                        <span class="mr-1">💧</span> <span id="humidity">--%</span>
-                    </div>
-                    <div class="flex items-center text-[10px]">
-                        <span class="mr-1">💨</span> <span id="wind">-- m/s</span>
-                    </div>
-                    <div class="flex items-center text-[10px] justify-end">
-                        <span class="mr-1">🕒</span> <span id="weather-time">--:--</span>
+                        <span id="temp" class="text-6xl font-light tracking-tighter">--</span><span class="text-2xl text-blue-400">°</span>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-3">
-                <button onclick="openModal('emergency')" class="flex items-center bg-red-500/5 border border-red-500/10 p-4 rounded-2xl active:scale-[0.97] transition-all">
-                    <span class="text-xl mr-4">🚨</span>
-                    <span class="text-sm font-bold text-red-400 uppercase tracking-tight">Экстренные службы</span>
+            <div class="glass-card p-6 space-y-3">
+                <button onclick="openModal('emergency')" class="w-full flex justify-between items-center p-5 bg-red-500/5 border border-red-500/10 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Emergency</span>
+                    <span class="text-red-500/20 text-xl">🚨</span>
                 </button>
-
-                <button onclick="openModal('uk')" class="flex items-center bg-white/5 border border-white/5 p-4 rounded-2xl active:scale-[0.97] transition-all">
-                    <span class="text-xl mr-4">🏢</span>
-                    <span class="text-sm font-bold text-slate-200 uppercase tracking-tight">Управляющая компания</span>
+                <button onclick="openModal('uk')" class="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Management</span>
+                    <span class="text-slate-600 text-xl">🏢</span>
                 </button>
-
-                <div id="admin-block" class="hidden mt-4">
-                    <button onclick="openModal('management')" class="w-full glass-card border-blue-500/30 p-4 rounded-2xl flex items-center active:scale-[0.97] transition-all">
-                        <span class="text-xl mr-4">⚙️</span>
-                        <span class="text-sm font-bold text-blue-400 uppercase tracking-tight">Управление</span>
-                    </button>
-                </div>
+                <button onclick="openModal('support')" class="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Support</span>
+                    <span class="text-slate-600 text-xl">✉️</span>
+                </button>
             </div>
         </div>
 
         <div id="page-tasks" class="page">
-            <div class="flex justify-between items-end mb-6">
-                <h2 class="text-xl font-bold">Мои заявки</h2>
-                <button onclick="openModal('create-order')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">Создать</button>
+            <div class="glass-card p-6 mb-6">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-4 text-blue-400">Create Request</p>
+                <select id="order-cat" class="text-sm mb-3"></select>
+                <textarea id="order-desc" class="text-sm h-24 mb-4" placeholder="Description..."></textarea>
+                <button class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Send</button>
             </div>
-            
-            <div class="space-y-4">
-                <div id="active-tasks-list" class="space-y-3">
-                    <div class="glass-card rounded-3xl p-5 border-l-4 border-l-blue-500">
-                        <div class="flex justify-between mb-2">
-                            <span class="text-[10px] font-bold text-blue-400 uppercase">В работе</span>
-                            <span class="text-[10px] text-slate-500">23.03 14:20</span>
-                        </div>
-                        <p class="text-sm font-medium">Ремонт смесителя в ванной</p>
+
+            <div class="glass-card p-6">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-4 text-slate-500 italic text-center">In Progress</p>
+                <div id="active-tasks-list" class="space-y-1">
                     </div>
-                </div>
             </div>
         </div>
 
         <div id="page-profile" class="page">
-            <div class="glass-card rounded-[2.5rem] p-6 mb-6 text-center">
-                <div id="profile-avatar" class="w-20 h-20 bg-blue-500/20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">👤</div>
-                <h3 id="profile-name" class="text-xl font-bold">--</h3>
-                <p id="profile-role" class="text-[10px] text-blue-400 font-black uppercase tracking-widest">Resident</p>
+            <div class="glass-card p-8 mb-6 text-center">
+                <img id="profile-avatar" src="" alt="👤" class="w-24 h-24 rounded-full mx-auto mb-4 border border-blue-600/20 shadow-lg object-cover">
+                <h3 id="profile-name" class="text-2xl font-bold italic tracking-tight">--</h3>
+                <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-2">--</p>
+                <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
+                
+                <button onclick="openModal('edit-profile')" class="mt-6 text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5">Изменить</button>
             </div>
 
-            <div class="glass-card rounded-[2.5rem] p-6 mb-6">
+            <div class="glass-card p-8">
+                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
+                
                 <div class="space-y-1">
-                    <div class="finance-item flex justify-between text-sm">
-                        <span class="text-slate-400">Общий долг:</span>
-                        <span class="font-bold text-white"><span id="p-total-debt">0.00</span> €</span>
+                    <div class="flex justify-between finance-item">
+                        <span class="text-xs text-slate-500 font-medium">всего</span>
+                        <span class="text-xl font-black"><span id="p-total-debt">0.00</span> €</span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">содержание</span>
+                        <span class="text-sm font-bold"><span id="debt-maintenance">0.00</span> €</span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">теплая вода</span>
+                        <span class="text-sm font-bold"><span id="debt-water">0.00</span> €</span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">гараж</span>
+                        <span class="text-sm font-bold"><span id="debt-garage">0.00</span> €</span>
                     </div>
                 </div>
+            </div>
+            
+            <div id="admin-block" class="hidden mt-6">
+                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
 
     </div>
 
     <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
-        <div class="modal-content w-full rounded-t-[3rem] p-8 pb-12 shadow-2xl translate-y-0 transition-transform" onclick="event.stopPropagation()">
+        <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16" onclick="event.stopPropagation()">
             <div id="modal-body"></div>
-            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">Закрыть</button>
+            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500">Close</button>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/95 backdrop-blur-2xl border-t border-white/5 px-10 py-6 flex justify-between items-center z-50">
-        <button onclick="switchPage('home')" id="nav-home" class="nav-btn flex flex-col items-center text-blue-500 active">
-            <span class="text-xl">🏠</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/80 backdrop-blur-xl border-t border-white/5 px-12 py-7 flex justify-between items-center z-50">
+        <button onclick="switchPage('home')" id="nav-home" class="nav-btn active flex flex-col items-center">
+            <span class="text-2xl">🏠</span>
             <span class="text-[8px] mt-1 font-black uppercase">Home</span>
         </button>
-        <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center text-slate-700">
-            <span class="text-xl">📋</span>
+        <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center">
+            <span class="text-2xl">📋</span>
             <span class="text-[8px] mt-1 font-black uppercase">Tasks</span>
         </button>
-        <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center text-slate-700">
-            <span class="text-xl">👤</span>
+        <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center">
+            <span class="text-2xl">👤</span>
             <span class="text-[8px] mt-1 font-black uppercase">Profile</span>
         </button>
     </nav>
@@ -183,19 +180,23 @@
 
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-blue-500');
-                b.classList.add('text-slate-700');
-            });
-
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
-            document.getElementById('nav-' + pageId).classList.replace('text-slate-700', 'text-blue-500');
+            document.getElementById('nav-' + pageId).classList.add('active');
         }
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
             const complex_id = urlParams.get('complex_id');
             const user_id = tg.initDataUnsafe?.user?.id || "6642689395"; 
+
+            // Установка фото и имени из Telegram
+            if(tg.initDataUnsafe?.user?.photo_url) {
+                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
+            } else {
+                document.getElementById('profile-avatar').style.display = 'none'; // Убрать если нет фото
+            }
+            document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
 
             try {
                 const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
@@ -204,75 +205,62 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                document.getElementById('user-greeting').innerText = `Hello, ${data.user_name}!`;
                 document.getElementById('complex-display-name').innerText = data.complex_name;
-                document.getElementById('apt-numbers').innerText = data.apt || "--";
-                document.getElementById('temp').innerText = data.weather.temp;
+                document.getElementById('temp').innerText = data.weather.temp.replace('°C','');
                 document.getElementById('humidity').innerText = data.weather.hum;
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
-                document.getElementById('weather-time').innerText = data.weather.time ? data.weather.time.split(' ')[1] : "--:--";
                 
-                document.getElementById('profile-name').innerText = data.user_name;
+                // Профиль
+                document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role;
+                
+                // Финансы
                 document.getElementById('p-total-debt').innerText = data.finance.total;
-
-                if (['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
-                    document.getElementById('admin-block').classList.remove('hidden');
+                document.getElementById('debt-maintenance').innerText = data.finance.maintenance;
+                document.getElementById('debt-water').innerText = data.finance.water;
+                document.getElementById('debt-garage').innerText = data.finance.garage;
+                
+                // Дата (из последней погодной записи для примера)
+                if (data.weather.time) {
+                    document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
 
-                document.getElementById('status-label').innerText = "Live";
-                document.getElementById('status-label').classList.replace('text-blue-400', 'text-green-400');
-            } catch (err) {
-                document.getElementById('status-label').innerText = "Offline";
-            }
+                const catSelect = document.getElementById('order-cat');
+                catSelect.innerHTML = data.services.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                if (['engineer', 'director', 'administrator'].includes(data.role.toLowerCase())) {
+                    document.getElementById('admin-block').classList.remove('hidden');
+                }
+            } catch (err) { console.error(err); }
         }
 
         function openModal(type) {
             const body = document.getElementById('modal-body');
             let html = "";
 
-            if (type === 'management') {
-                html = `<h2 class="text-xl font-bold mb-8 text-center italic">⚙️ Управление</h2>
-                    <div class="space-y-3">
-                        ${cachedData?.role === 'engineer' ? `
-                        <button onclick="openModal('checklist')" class="w-full p-5 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-left flex justify-between items-center">
-                            <span class="text-xs font-bold uppercase text-blue-400">📋 Технический чек-лист</span><span class="text-blue-400">→</span>
-                        </button>` : ''}
-                        <button class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-left flex justify-between items-center">
-                            <span class="text-xs font-bold uppercase">📊 Финансы ЖК</span><span class="text-slate-500">→</span>
-                        </button>
-                    </div>`;
-            } 
-            else if (type === 'checklist') {
-                // РЕАЛИЗАЦИЯ ЭСКИЗА 5255
-                html = `<h2 class="text-xl font-bold mb-2 text-center">Технический осмотр</h2>
-                    <p class="text-[10px] text-slate-500 uppercase text-center mb-6 tracking-widest">Daily Maintenance</p>
-                    <div class="space-y-2">
-                        <div class="checklist-item">
-                            <div><p class="text-sm">Давление в системе</p><p class="text-[10px] text-slate-500">Норма: 2.0 - 2.5 bar</p></div>
-                            <input type="text" class="checklist-input" placeholder="bar">
+            if (type === 'edit-profile') {
+                html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="whatsapp number...">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="your email...">
+                        <button class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Save</button>`;
+            } else if (type === 'emergency') {
+                html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
+                cachedData.emergency.forEach(e => {
+                    html += `<a href="tel:${e.Number}" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-400 font-bold mb-3"><span>${e.Service}</span><span>${e.Number}</span></a>`;
+                });
+            } else if (type === 'uk') {
+                html = `<h2 class="text-xl font-bold mb-6 italic">Manager</h2>
+                        <a href="https://t.me/${cachedData.management.Telegram}" target="_blank" class="block p-6 bg-blue-600 rounded-3xl text-white font-black uppercase text-center text-xs tracking-widest">Chat with Manager</a>`;
+            } else if (type === 'management') {
+                html = `<h2 class="text-xl font-bold mb-8 italic text-blue-400 tracking-widest">Admin Control</h2>
+                        <button onclick="openModal('checklist')" class="w-full p-5 bg-blue-500/10 border border-blue-500/20 rounded-3xl text-blue-400 font-black uppercase text-[10px] tracking-widest">Engineering Checklist</button>`;
+            } else if (type === 'checklist') {
+                html = `<h2 class="text-xl font-bold mb-8 italic tracking-widest">Checklist</h2>
+                        <div class="space-y-4 mb-8">
+                            <div class="flex justify-between items-center"><span>Pressure</span><input type="text" class="w-20 bg-black/20 rounded p-1 text-right" placeholder="bar"></div>
+                            <div class="flex justify-between items-center"><span>Lighting</span><input type="checkbox" class="w-6 h-6"></div>
                         </div>
-                        <div class="checklist-item">
-                            <p class="text-sm">Освещение паркинга</p>
-                            <input type="checkbox">
-                        </div>
-                        <div class="checklist-item">
-                            <p class="text-sm">Работа лифтов</p>
-                            <input type="checkbox">
-                        </div>
-                        <div class="checklist-item">
-                            <div><p class="text-sm">Уровень воды в баке</p><p class="text-[10px] text-slate-500">Метры</p></div>
-                            <input type="text" class="checklist-input" placeholder="m">
-                        </div>
-                    </div>
-                    <button class="w-full mt-8 p-5 bg-green-600 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest">Сохранить отчет</button>`;
-            }
-            else if (type === 'emergency') {
-                html = `<h2 class="text-xl font-bold mb-6 text-center italic text-red-400">🚨 Экстренные службы</h2>
-                    <div class="space-y-3">
-                        <a href="tel:122" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 font-bold italic"><span>Полиция</span><span>122</span></a>
-                        <a href="tel:123" class="flex justify-between p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 font-bold italic"><span>Пожарные</span><span>123</span></a>
-                    </div>`;
+                        <button class="w-full py-5 bg-green-600 rounded-3xl font-black uppercase text-[10px] tracking-widest">Submit</button>`;
             }
 
             body.innerHTML = html;
@@ -280,7 +268,6 @@
         }
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-
         loadData();
     </script>
 </body>
