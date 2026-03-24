@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="temp" class="text-6xl font-light tracking-tighter text-white">--</span><span class="text-2xl text-white align-top inline-block mt-2">°</span>
+                        <span id="temp" class="text-5xl font-light tracking-tighter text-white whitespace-nowrap">--°C</span>
                     </div>
                 </div>
             </div>
@@ -181,7 +181,11 @@
                 cachedData = data;
                 
                 document.getElementById('complex-display-name').innerText = data.complex_name;
-                document.getElementById('temp').innerText = data.weather.temp.replace('°C','');
+
+                // ВЫВОД ТЕМПЕРАТУРЫ С °C
+                const rawTemp = String(data.weather.temp).replace(/[^\d.-]/g, ''); 
+                document.getElementById('temp').innerText = `${rawTemp}°C`;
+
                 document.getElementById('humidity').innerText = data.weather.hum;
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
                 
