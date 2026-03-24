@@ -228,41 +228,63 @@
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
                 if (cachedData && cachedData.management && cachedData.management.length > 0) {
                     cachedData.management.forEach(m => {
-                        let val = m.Value.trim();
-                        let valLower = val.toLowerCase();
-                        let finalUrl, btnText, btnColor;
+                        let rawVal = m.Value.trim();
+                        let valLower = rawVal.toLowerCase();
+                        let finalUrl, btnText, btnColor, displayVal;
 
-                        // Логика: если это почта (содержит @ или начинается на mailto:)
+                        // Если почта
                         if (valLower.includes('@') || valLower.startsWith('mailto:')) {
-                            // Очищаем от mailto:, если оно пришло из таблицы, для красивого отображения
-                            const displayEmail = val.replace(/mailto:/i, '');
-                            finalUrl = `mailto:${displayEmail}`;
+                            displayVal = rawVal.replace(/mailto:/i, '');
+                            // Хитрость: вставляем невидимый символ после @, чтобы ТГ не сделал из этого ссылку на чат
+                            const maskedDisplay = displayVal.replace('@', '@&#8203;');
+                            finalUrl = `mailto:${displayVal}`;
                             btnText = 'Email';
                             btnColor = 'bg-blue-500';
-                            val = displayEmail; // отображаем чистую почту
+                            
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 ml-2">${m.Type}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-sm text-white ml-2">${maskedDisplay}</span>
+                                    <button onclick="window.Telegram.WebApp.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>`;
                         } 
-                        // Если это телефон
-                        else if (val.startsWith('+') || /^\d/.test(val)) {
-                            finalUrl = `tel:${val.replace(/\s/g, '')}`;
+                        // Если телефон
+                        else if (rawVal.startsWith('+') || /^\d/.test(rawVal)) {
+                            finalUrl = `tel:${rawVal.replace(/\s/g, '')}`;
                             btnText = 'Call';
                             btnColor = 'bg-green-600';
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 ml-2">${m.Type}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-sm text-white ml-2">${rawVal}</span>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>`;
                         } 
-                        // Если это Telegram юзернейм или ссылка
+                        // Если Telegram
                         else {
-                            const cleanNick = val.replace('@', '');
+                            const cleanNick = rawVal.replace('@', '');
                             finalUrl = `https://t.me/${cleanNick}`;
                             btnText = 'Chat';
                             btnColor = 'bg-[#0088cc]';
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 ml-2">${m.Type}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-sm text-white ml-2">${rawVal}</span>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>`;
                         }
-
-                        html += `
-                        <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
-                            <p class="text-[10px] uppercase font-black text-slate-500 mb-1 ml-2">${m.Type}</p>
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm text-white ml-2">${val}</span>
-                                <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase">${btnText}</button>
-                            </div>
-                        </div>`;
                     });
                 } else {
                     html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
