@@ -228,20 +228,29 @@
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
                 if (cachedData && cachedData.management && cachedData.management.length > 0) {
                     cachedData.management.forEach(m => {
-                        const val = m.Value.trim();
-                        const valLower = val.toLowerCase();
-                        let link, btnText, btnColor;
+                        let val = m.Value.trim();
+                        let valLower = val.toLowerCase();
+                        let finalUrl, btnText, btnColor;
 
-                        if (valLower.includes('@') && valLower.includes('.')) {
-                            link = `mailto:${valLower}`;
+                        // Логика: если это почта (содержит @ или начинается на mailto:)
+                        if (valLower.includes('@') || valLower.startsWith('mailto:')) {
+                            // Очищаем от mailto:, если оно пришло из таблицы, для красивого отображения
+                            const displayEmail = val.replace(/mailto:/i, '');
+                            finalUrl = `mailto:${displayEmail}`;
                             btnText = 'Email';
                             btnColor = 'bg-blue-500';
-                        } else if (val.startsWith('+') || /^\d/.test(val)) {
-                            link = `tel:${val.replace(/\s/g, '')}`;
+                            val = displayEmail; // отображаем чистую почту
+                        } 
+                        // Если это телефон
+                        else if (val.startsWith('+') || /^\d/.test(val)) {
+                            finalUrl = `tel:${val.replace(/\s/g, '')}`;
                             btnText = 'Call';
                             btnColor = 'bg-green-600';
-                        } else {
-                            link = `https://t.me/${val.replace('@', '')}`;
+                        } 
+                        // Если это Telegram юзернейм или ссылка
+                        else {
+                            const cleanNick = val.replace('@', '');
+                            finalUrl = `https://t.me/${cleanNick}`;
                             btnText = 'Chat';
                             btnColor = 'bg-[#0088cc]';
                         }
@@ -251,7 +260,7 @@
                             <p class="text-[10px] uppercase font-black text-slate-500 mb-1 ml-2">${m.Type}</p>
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-sm text-white ml-2">${val}</span>
-                                <button onclick="tg.openLink('${link}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase">${btnText}</button>
+                                <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase">${btnText}</button>
                             </div>
                         </div>`;
                     });
