@@ -68,7 +68,7 @@
                 </div>
             </div>
 
-            <div class="glass-card p-6 space-y-3">
+            <div class="glass-card p-6 space-y-3 mb-6">
                 <button onclick="openModal('emergency')" class="w-full flex justify-between items-center p-2 bg-red-500/5 border border-red-500/10 rounded-[1.8rem]">
                     <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Emergency</span>
                     <span class="text-red-500/20 text-xl">🚨</span>
@@ -81,6 +81,10 @@
                     <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Support</span>
                     <span class="text-slate-600 text-xl">✉️</span>
                 </button>
+            </div>
+
+            <div id="admin-block" class="hidden">
+                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
 
@@ -118,10 +122,6 @@
                         <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
                     </div>
                 </div>
-            </div>
-            
-            <div id="admin-block" class="hidden mt-6">
-                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
     </div>
