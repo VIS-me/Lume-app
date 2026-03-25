@@ -84,7 +84,7 @@
             </div>
 
             <div id="admin-block" class="hidden">
-                <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
+                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
 
@@ -119,15 +119,15 @@
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">содержание</span>
-                        <span id="debt-maintenance" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
+                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">горячая вода</span>
-                        <span id="debt-hotwater" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
+                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">гараж</span>
-                        <span id="debt-garage" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
+                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
                     </div>
                 </div>
             </div>
@@ -199,24 +199,16 @@
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role;
 
-                // ФИНАНСЫ (согласно вашей таблице)
-                const f = data.finance || {};
-                const currency = f.Currency || "€";
-                
-                // Заполняем ID данными из API
-                document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
-                
-                // Обновляем все значки валют
+                // Финансы
+                const currency = data.finance.currency || "€";
+                document.getElementById('p-total-debt').innerText = data.finance.total;
                 document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
                 
-                // Заполняем значения по категориям
-                document.getElementById('debt-maintenance').innerHTML = `${f.Maintenance_Fee || "0.00"} <span class="currency-label">${currency}</span>`;
-                document.getElementById('debt-hotwater').innerHTML = `${f.Hot_Water_Debt || "0.00"} <span class="currency-label">${currency}</span>`;
-                document.getElementById('debt-garage').innerHTML = `${f.Garage_Debt || "0.00"} <span class="currency-label">${currency}</span>`;
+                document.getElementById('debt-maintenance').innerText = data.finance.maintenance + " " + currency;
+                document.getElementById('debt-hotwater').innerText = (data.finance.hot_water || "0.00") + " " + currency;
+                document.getElementById('debt-garage').innerText = (data.finance.garage || "0.00") + " " + currency;
                 
-                if (f.Last_Update) {
-                    document.getElementById('payment-date').innerText = f.Last_Update;
-                } else if (data.weather.time) {
+                if (data.weather.time) {
                     document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
 
