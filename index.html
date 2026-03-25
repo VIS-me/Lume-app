@@ -119,15 +119,15 @@
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">содержание</span>
-                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
+                        <span id="debt-maintenance" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">горячая вода</span>
-                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
+                        <span id="debt-hotwater" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
                     </div>
                     <div class="flex justify-between finance-item text-slate-300">
                         <span class="text-xs font-medium">гараж</span>
-                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
+                        <span id="debt-garage" class="text-sm font-bold">0.00 <span class="currency-label">€</span></span>
                     </div>
                 </div>
             </div>
@@ -203,12 +203,16 @@
                 const f = data.finance || {};
                 const currency = f.Currency || "€";
                 
+                // Заполняем ID данными из API
                 document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
+                
+                // Обновляем все значки валют
                 document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
                 
-                document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
-                document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
-                document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
+                // Заполняем значения по категориям
+                document.getElementById('debt-maintenance').innerHTML = `${f.Maintenance_Fee || "0.00"} <span class="currency-label">${currency}</span>`;
+                document.getElementById('debt-hotwater').innerHTML = `${f.Hot_Water_Debt || "0.00"} <span class="currency-label">${currency}</span>`;
+                document.getElementById('debt-garage').innerHTML = `${f.Garage_Debt || "0.00"} <span class="currency-label">${currency}</span>`;
                 
                 if (f.Last_Update) {
                     document.getElementById('payment-date').innerText = f.Last_Update;
