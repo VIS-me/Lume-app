@@ -161,7 +161,10 @@
         tg.expand();
         tg.ready();
 
-        const API_URL = "https://sinuate-inez-proempire.ngrok-free.dev/api/data";
+        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
+        const API_URL = `${API_BASE}/api/data`;
+        const UPDATE_URL = `${API_BASE}/api/update_contacts`;
+        
         let cachedData = null;
 
         function switchPage(pageId) {
@@ -200,23 +203,16 @@
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role || "--";
 
-                // Финансы - исправлено под названия столбцов таблицы
+                // Финансы
                 if (data.finance) {
                     const f = data.finance;
-                    const currency = f.Currency || "€";
+                    const currency = f.currency || "€";
                     document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
                     
-                    // Общий долг (Total_Debt)
-                    document.getElementById('p-total-debt').innerText = f.Total_Debt || f.total || "0.00";
-                    
-                    // Содержание (Maintenance_Fee)
-                    document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || f.maintenance || "0.00") + " " + currency;
-                    
-                    // Горячая вода (Hot_Water_Debt)
-                    document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || f.hot_water || "0.00") + " " + currency;
-                    
-                    // Гараж (Garage_Debt)
-                    document.getElementById('debt-garage').innerText = (f.Garage_Debt || f.garage || "0.00") + " " + currency;
+                    document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
+                    document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
+                    document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
+                    document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
                 }
 
                 if (data.weather && data.weather.time) {
@@ -348,9 +344,44 @@
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
-        function saveProfile() {
-            tg.MainButton.setText("Данные обновлены!").show();
-            setTimeout(() => { tg.MainButton.hide(); closeModal(); }, 2000);
+        async function saveProfile() {
+            const whatsapp = document.getElementById('whatsapp-input').value;
+            const email = document.getElementById('email-input').value;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const complex_id = urlParams.get('complex_id');
+            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
+
+            tg.MainButton.setText("Сохранение...").show();
+            
+            try {
+                const response = await fetch(UPDATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        complex_id: complex_id,
+                        whatsapp: whatsapp,
+                        email: email
+                    })
+                });
+
+                if (response.ok) {
+                    tg.MainButton.setText("Данные обновлены!").show();
+                    setTimeout(() => { 
+                        tg.MainButton.hide(); 
+                        closeModal(); 
+                        loadData(); // Перезагружаем данные для обновления в профиле
+                    }, 1500);
+                } else {
+                    tg.showAlert("Ошибка при сохранении данных.");
+                    tg.MainButton.hide();
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+                tg.showAlert("Сервер недоступен.");
+                tg.MainButton.hide();
+            }
         }
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
