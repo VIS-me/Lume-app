@@ -200,22 +200,23 @@
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role || "--";
 
-                // Связка с вашей таблицей (Finance Section)
+                // Финансы - исправлено под названия столбцов таблицы
                 if (data.finance) {
-                    const currency = data.finance.currency || "€";
+                    const f = data.finance;
+                    const currency = f.Currency || "€";
                     document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
                     
                     // Общий долг (Total_Debt)
-                    document.getElementById('p-total-debt').innerText = data.finance.total || "0.00";
+                    document.getElementById('p-total-debt').innerText = f.Total_Debt || f.total || "0.00";
                     
                     // Содержание (Maintenance_Fee)
-                    document.getElementById('debt-maintenance').innerText = (data.finance.maintenance || "0.00") + " " + currency;
+                    document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || f.maintenance || "0.00") + " " + currency;
                     
                     // Горячая вода (Hot_Water_Debt)
-                    document.getElementById('debt-hotwater').innerText = (data.finance.hot_water || "0.00") + " " + currency;
+                    document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || f.hot_water || "0.00") + " " + currency;
                     
                     // Гараж (Garage_Debt)
-                    document.getElementById('debt-garage').innerText = (data.finance.garage || "0.00") + " " + currency;
+                    document.getElementById('debt-garage').innerText = (f.Garage_Debt || f.garage || "0.00") + " " + currency;
                 }
 
                 if (data.weather && data.weather.time) {
