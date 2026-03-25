@@ -84,7 +84,7 @@
             </div>
 
             <div id="admin-block" class="hidden">
-                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
+                <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
 
@@ -199,16 +199,20 @@
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
                 document.getElementById('profile-role').innerText = data.role;
 
-                // Финансы
-                const currency = data.finance.currency || "€";
-                document.getElementById('p-total-debt').innerText = data.finance.total;
+                // ФИНАНСЫ (согласно вашей таблице)
+                const f = data.finance || {};
+                const currency = f.Currency || "€";
+                
+                document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
                 document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
                 
-                document.getElementById('debt-maintenance').innerText = data.finance.maintenance + " " + currency;
-                document.getElementById('debt-hotwater').innerText = (data.finance.hot_water || "0.00") + " " + currency;
-                document.getElementById('debt-garage').innerText = (data.finance.garage || "0.00") + " " + currency;
+                document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
+                document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
+                document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
                 
-                if (data.weather.time) {
+                if (f.Last_Update) {
+                    document.getElementById('payment-date').innerText = f.Last_Update;
+                } else if (data.weather.time) {
                     document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
 
