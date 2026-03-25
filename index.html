@@ -226,8 +226,8 @@
                     catSelect.innerHTML = data.services.map(s => `<option value="${s}">${s}</option>`).join('');
                 }
 
-                // Список активных задач
-                renderActiveTasks(data.orders);
+                // Список активных задач (Синхронизировано с Python API ключом active_orders)
+                renderActiveTasks(data.active_orders);
 
                 // Админ-панель
                 if (data.role && ['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
@@ -242,28 +242,25 @@
             if (!list) return;
             
             if (orders && orders.length > 0) {
-                // Фильтрация: оставляем только 'New' и 'In progress'
-                const filtered = orders.filter(o => o.status === 'New' || o.status === 'In progress');
-                
-                if (filtered.length > 0) {
-                    list.innerHTML = filtered.map(o => {
-                        // Определяем стиль бейджа в зависимости от статуса
-                        const isWork = o.status === 'In progress';
-                        const statusClass = isWork ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
-                        
-                        return `
-                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category}</span>
-                                    <span class="text-[11px] text-slate-300 line-clamp-1">${o.description}</span>
-                                </div>
-                                <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase">${o.status}</span>
+                // В Python API мы уже отфильтровали Done/Cancelled, но на всякий случай проверяем здесь
+                list.innerHTML = orders.map(o => {
+                    const statusLower = String(o.status).toLowerCase();
+                    // Определяем стиль бейджа
+                    const isInProgress = statusLower === 'in progress' || statusLower === 'в работе';
+                    const isNew = statusLower === 'new' || statusLower === 'новое' || statusLower === 'новая';
+                    
+                    const statusClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
+                    
+                    return `
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                            <div class="flex flex-col flex-1 mr-2">
+                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
+                                <span class="text-[11px] text-slate-300 line-clamp-1">${o.desc || 'No description'}</span>
                             </div>
-                        `;
-                    }).join('');
-                } else {
-                    list.innerHTML = `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
-                }
+                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase whitespace-nowrap">${o.status}</span>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 list.innerHTML = `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
             }
@@ -413,10 +410,12 @@
                 </div>`;
             }
             else if (type === 'edit-profile') {
+                const currentWA = cachedData ? cachedData.whatsapp : "";
+                const currentEmail = cachedData ? cachedData.email : "";
                 html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
                         <p class="text-[10px] text-slate-500 mb-4 uppercase font-black">Contacts for Management</p>
-                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp (например +7...)">
-                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email...">
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp (например +7...)" value="${currentWA}">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email..." value="${currentEmail}">
                         <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Save Changes</button>`;
             }
 
@@ -466,6 +465,7 @@
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
         
+        // Первый запуск
         loadData();
     </script>
 </body>
