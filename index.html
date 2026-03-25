@@ -84,7 +84,7 @@
             </div>
 
             <div id="admin-block" class="hidden">
-                <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
+                <button onclick="openModal('management')" class="w-full glass-card p-6 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
             </div>
         </div>
 
@@ -188,39 +188,45 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                document.getElementById('complex-display-name').innerText = data.complex_name;
+                document.getElementById('complex-display-name').innerText = data.complex_name || "--";
 
+                // Погода
                 const rawTemp = String(data.weather.temp).replace(/[^\d.-]/g, ''); 
-                document.getElementById('temp').innerText = `${rawTemp}°C`;
-
-                document.getElementById('humidity').innerText = data.weather.hum;
+                document.getElementById('temp').innerText = `${rawTemp || "0"}°C`;
+                document.getElementById('humidity').innerText = data.weather.hum || "--%";
                 document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
                 
+                // Профиль
                 document.getElementById('apt-numbers').innerText = data.apt || "--";
-                document.getElementById('profile-role').innerText = data.role;
+                document.getElementById('profile-role').innerText = data.role || "--";
 
                 // Финансы
-                const currency = data.finance.currency || "€";
-                document.getElementById('p-total-debt').innerText = data.finance.total;
-                document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
-                
-                document.getElementById('debt-maintenance').innerText = data.finance.maintenance + " " + currency;
-                document.getElementById('debt-hotwater').innerText = (data.finance.hot_water || "0.00") + " " + currency;
-                document.getElementById('debt-garage').innerText = (data.finance.garage || "0.00") + " " + currency;
-                
-                if (data.weather.time) {
+                if (data.finance) {
+                    const currency = data.finance.currency || "€";
+                    document.getElementById('p-total-debt').innerText = data.finance.total || "0.00";
+                    document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
+                    
+                    document.getElementById('debt-maintenance').innerText = (data.finance.maintenance || "0.00") + " " + currency;
+                    document.getElementById('debt-hotwater').innerText = (data.finance.hot_water || "0.00") + " " + currency;
+                    document.getElementById('debt-garage').innerText = (data.finance.garage || "0.00") + " " + currency;
+                }
+
+                if (data.weather && data.weather.time) {
                     document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
 
+                // Сервисы
                 const catSelect = document.getElementById('order-cat');
-                if (data.services) {
+                if (data.services && catSelect) {
                     catSelect.innerHTML = data.services.map(s => `<option value="${s}">${s}</option>`).join('');
                 }
 
-                if (['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
-                    document.getElementById('admin-block').classList.remove('hidden');
+                // Админ-панель
+                if (data.role && ['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
+                    const adminBlock = document.getElementById('admin-block');
+                    if (adminBlock) adminBlock.classList.remove('hidden');
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("Data loading error:", err); }
         }
 
         function openModal(type) {
