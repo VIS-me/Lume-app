@@ -233,33 +233,62 @@
                     cachedData.management.forEach(m => {
                         let rawVal = m.Value.trim();
                         let valLower = rawVal.toLowerCase();
-                        let finalUrl, displayVal;
+                        let finalUrl, btnText, btnColor;
 
                         if (valLower.includes('@') || valLower.startsWith('mailto:')) {
-                            displayVal = rawVal.replace(/mailto:/i, '');
-                            const maskedDisplay = displayVal.replace('@', '@&#8203;');
-                            finalUrl = `mailto:${displayVal}`;
+                            const email = rawVal.replace(/mailto:/i, '');
+                            finalUrl = `mailto:${email}`;
+                            btnText = 'Email';
+                            btnColor = 'bg-slate-600';
+                            
                             html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl mb-3 active:bg-white/10" onclick="tg.openLink('${finalUrl}')">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1">${m.Type}</p>
-                                <div class="text-sm font-bold text-blue-400">${maskedDisplay}</div>
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${email}</span>
+                                    </div>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
                             </div>`;
                         } 
                         else if (rawVal.startsWith('+') || /^\d/.test(rawVal)) {
                             finalUrl = `tel:${rawVal.replace(/\s/g, '')}`;
+                            btnText = 'Call';
+                            btnColor = 'bg-green-600';
+                            
                             html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl mb-3 active:bg-white/10" onclick="tg.openLink('${finalUrl}')">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1">${m.Type}</p>
-                                <div class="text-lg font-bold text-white">${rawVal}</div>
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${rawVal}</span>
+                                    </div>
+                                    <a href="${finalUrl}" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50 flex items-center justify-center">
+                                        ${btnText}
+                                    </a>
+                                </div>
                             </div>`;
                         } 
                         else {
                             const cleanNick = rawVal.replace('@', '');
                             finalUrl = `https://t.me/${cleanNick}`;
+                            btnText = 'Chat';
+                            btnColor = 'bg-[#0088cc]';
+                            
                             html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl mb-3 active:bg-white/10" onclick="tg.openLink('${finalUrl}')">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1">${m.Type}</p>
-                                <div class="text-sm font-bold text-[#0088cc]">${rawVal}</div>
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${rawVal}</span>
+                                    </div>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
                             </div>`;
                         }
                     });
