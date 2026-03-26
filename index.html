@@ -36,6 +36,10 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding: 12px 0;
         }
+        option {
+            background: #1e293b;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
@@ -90,11 +94,12 @@
 
         <div id="page-tasks" class="page">
             <div class="glass-card p-6 mb-6">
-                <p class="text-[10px] font-black uppercase tracking-widest mb-4 text-blue-400">Create Request</p>
-                <select id="order-cat" class="text-sm mb-3"></select>
-                <textarea id="order-desc" class="text-sm h-24 mb-4" placeholder="Description..."></textarea>
-                <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Send</button>
+                <button onclick="openModal('create-order')" class="w-full py-6 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2">
+                    <span class="text-2xl">📝</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
+                </button>
             </div>
+            
             <div class="glass-card p-6">
                 <p class="text-[10px] font-black uppercase tracking-widest mb-4 text-slate-500 italic text-center">In Progress</p>
                 <div id="active-tasks-list" class="space-y-1"></div>
@@ -206,7 +211,7 @@
                     }
                 }
                 
-                // Профиль (Поддержка массива апартаментов)
+                // Профиль
                 const aptDisplay = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
                 document.getElementById('apt-numbers').innerText = aptDisplay;
                 document.getElementById('profile-role').innerText = data.role || "--";
@@ -221,12 +226,6 @@
                     document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
                     document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
                     document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
-                }
-
-                // Сервисы
-                const catSelect = document.getElementById('order-cat');
-                if (data.services && catSelect) {
-                    catSelect.innerHTML = data.services.map(s => `<option value="${s}">${s}</option>`).join('');
                 }
 
                 // Список активных задач
@@ -269,9 +268,14 @@
         async function sendOrder() {
             const category = document.getElementById('order-cat').value;
             const description = document.getElementById('order-desc').value;
+            const apartment = document.getElementById('order-apt').value;
             
             if(!description.trim()) {
                 tg.showAlert("Please enter description");
+                return;
+            }
+            if(!apartment.trim()) {
+                tg.showAlert("Please enter apartment number");
                 return;
             }
 
@@ -289,15 +293,16 @@
                         user_id: user_id,
                         complex_id: complex_id,
                         category: category,
-                        description: description
+                        description: description,
+                        apartment: apartment
                     })
                 });
 
                 if (response.ok) {
                     tg.MainButton.setText("Order Sent!").show();
-                    document.getElementById('order-desc').value = "";
                     setTimeout(() => {
                         tg.MainButton.hide();
+                        closeModal();
                         loadData(); 
                     }, 1500);
                 } else {
@@ -314,7 +319,32 @@
             const body = document.getElementById('modal-body');
             let html = "";
 
-            if (type === 'emergency') {
+            if (type === 'create-order') {
+                const servicesHtml = (cachedData && cachedData.services) 
+                    ? cachedData.services.map(s => `<option value="${s}">${s}</option>`).join('')
+                    : `<option value="Other">Other</option>`;
+                
+                const currentApt = (cachedData && cachedData.apt) ? (Array.isArray(cachedData.apt) ? cachedData.apt[0] : cachedData.apt) : "";
+
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p>
+                            <select id="order-cat" class="text-sm">${servicesHtml}</select>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment</p>
+                            <input type="text" id="order-apt" class="text-sm" placeholder="Apt number..." value="${currentApt}">
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
+                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
+                        </div>
+                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send Request</button>
+                    </div>`;
+            }
+            else if (type === 'emergency') {
                 html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
                 if (cachedData && cachedData.emergency && cachedData.emergency.length > 0) {
                     cachedData.emergency.forEach(e => {
