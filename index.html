@@ -95,16 +95,16 @@
 
         <!-- TASKS PAGE -->
         <div id="page-tasks" class="page">
-            <div class="glass-card p-6 mb-6">
+            <div class="glass-card p-6 space-y-4">
                 <button onclick="openModal('create-order')" class="w-full py-6 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2">
                     <span class="text-2xl">📝</span>
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
                 </button>
-            </div>
-            
-            <div class="glass-card p-6">
-                <p class="text-[10px] font-black uppercase tracking-widest mb-4 text-slate-500 italic text-center">In Progress</p>
-                <div id="active-tasks-list" class="space-y-1"></div>
+
+                <button onclick="openModal('in-progress')" class="w-full py-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2">
+                    <span class="text-2xl">⏳</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
+                </button>
             </div>
         </div>
 
@@ -233,9 +233,6 @@
                     document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
                 }
 
-                // Список активных задач
-                renderActiveTasks(data.active_orders);
-
                 // Админ-панель
                 if (data.role && ['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
                     const adminBlock = document.getElementById('admin-block');
@@ -244,36 +241,53 @@
             } catch (err) { console.error("Data loading error:", err); }
         }
 
-        function renderActiveTasks(orders) {
-            const list = document.getElementById('active-tasks-list');
-            if (!list) return;
-            
-            if (orders && Array.isArray(orders) && orders.length > 0) {
-                list.innerHTML = orders.map(o => {
-                    const statusVal = String(o.status || "").toLowerCase();
-                    const isInProgress = statusVal.includes('progress') || statusVal.includes('работе');
-                    
-                    const statusClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
-                    
-                    return `
-                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                            <div class="flex flex-col flex-1 mr-2">
-                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                                <span class="text-[11px] text-slate-300 line-clamp-1">${o.desc || 'No description'}</span>
-                            </div>
-                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase whitespace-nowrap">${o.status}</span>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                list.innerHTML = `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
+        function getTasksHtml() {
+            if (!cachedData || !cachedData.active_orders) {
+                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No requests found</p>`;
             }
+
+            const role = (cachedData.role || "").toLowerCase();
+            const isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(role);
+            
+            // Фильтрация
+            const filtered = cachedData.active_orders.filter(o => {
+                const status = String(o.status || "").toLowerCase();
+                if (isStaff) {
+                    // Стафф видит всё, кроме выполненного
+                    return status !== 'done' && status !== 'выполнено';
+                } else {
+                    // Резидент видит только свои (сервер обычно уже присылает только его, 
+                    // но оставляем логику отображения как было в коде)
+                    return true;
+                }
+            });
+
+            if (filtered.length === 0) {
+                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
+            }
+
+            return filtered.map(o => {
+                const statusVal = String(o.status || "").toLowerCase();
+                const isInProgress = statusVal.includes('progress') || statusVal.includes('работе');
+                const statusClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
+                const aptTag = isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : '';
+                
+                return `
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                        <div class="flex flex-col flex-1 mr-2">
+                            ${aptTag}
+                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
+                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
+                        </div>
+                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase whitespace-nowrap">${o.status}</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function sendOrder() {
             const category = document.getElementById('order-cat').value;
             const description = document.getElementById('order-desc').value;
-            // ИЗМЕНЕНО: Поле apartment теперь соответствует ключу 'apt' на сервере
             const apartment = document.getElementById('order-apt').value;
             
             if(!description.trim()) {
@@ -300,7 +314,7 @@
                         complex_id: complex_id,
                         category: category,
                         description: description,
-                        apt: apartment // ИЗМЕНЕНО с apartment на apt для Python-обработчика
+                        apt: apartment
                     })
                 });
 
@@ -330,7 +344,6 @@
                     ? cachedData.services.map(s => `<option value="${s}">${s}</option>`).join('')
                     : `<option value="Other">Other</option>`;
                 
-                // Предзаполнение апартамента (берем первый из списка пользователя)
                 let currentApt = "";
                 if (cachedData && cachedData.apt) {
                     if (typeof cachedData.apt === 'string') {
@@ -356,6 +369,13 @@
                             <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
                         </div>
                         <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send Request</button>
+                    </div>`;
+            }
+            else if (type === 'in-progress') {
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2>
+                    <div class="space-y-1">
+                        ${getTasksHtml()}
                     </div>`;
             }
             else if (type === 'emergency') {
