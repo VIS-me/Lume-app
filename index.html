@@ -105,12 +105,13 @@
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
                 </button>
 
-                <!-- Admin block moved here -->
+                <!-- Admin block -->
                 <div id="admin-block" class="hidden mt-4 space-y-3">
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 1</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 2</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 3</button>
-                    <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 4</button>
+                    <!-- Эта кнопка будет видна только для Engineer -->
+                    <button id="engineer-btn" onclick="openModal('management')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 4</button>
                 </div>
             </div>
         </div>
@@ -185,7 +186,6 @@
             order: `${API_BASE}/api/create_order`
         };
         
-        // Глобальный конфиг
         const urlParams = new URLSearchParams(window.location.search);
         const APP_CONFIG = {
             complex_id: urlParams.get('complex_id'),
@@ -203,7 +203,6 @@
         }
 
         async function loadData() {
-            // Инициализация UI из Телеграм
             if(tg.initDataUnsafe?.user?.photo_url) {
                 document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
             }
@@ -216,13 +215,11 @@
                 const data = await response.json();
                 cachedData = data;
                 
-                // Проверка на Staff (роли из таблицы)
                 const roleLower = (data.role || "").toLowerCase();
                 isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(roleLower);
 
                 document.getElementById('complex-display-name').innerText = data.complex_name || "--";
 
-                // Погода и Дата
                 if (data.weather) {
                     const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
                     document.getElementById('temp').innerText = `${rawTemp}°C`;
@@ -231,11 +228,9 @@
                     if (data.weather.time) document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
                 
-                // Профиль
                 document.getElementById('apt-numbers').innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
                 document.getElementById('profile-role').innerText = data.role || "--";
 
-                // Финансы
                 if (data.finance) {
                     const f = data.finance;
                     const cur = f.currency || "€";
@@ -246,8 +241,18 @@
                     document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
                 }
 
-                // Админ-блок (теперь на странице Tasks)
-                if (isStaff) document.getElementById('admin-block')?.classList.remove('hidden');
+                // Админ-блок
+                if (isStaff) {
+                    document.getElementById('admin-block')?.classList.remove('hidden');
+                    
+                    // Проверка роли Engineer для 4-й кнопки
+                    const engBtn = document.getElementById('engineer-btn');
+                    if (roleLower === 'engineer') {
+                        engBtn?.classList.remove('hidden');
+                    } else {
+                        engBtn?.classList.add('hidden');
+                    }
+                }
 
             } catch (err) { 
                 console.error("Data loading error:", err);
