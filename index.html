@@ -107,7 +107,7 @@
 
                 <!-- Admin block -->
                 <div id="admin-block" class="hidden mt-4 space-y-3">
-                    <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
+                    <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 2</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Control Panel 3</button>
                     <!-- Эта кнопка будет видна только для Engineer -->
@@ -183,7 +183,8 @@
         const ENDPOINTS = {
             data: `${API_BASE}/api/data`,
             update: `${API_BASE}/api/update_contacts`,
-            order: `${API_BASE}/api/create_order`
+            order: `${API_BASE}/api/create_order`,
+            broadcast: `${API_BASE}/api/broadcast` // Новый эндпоинт
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -241,11 +242,8 @@
                     document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
                 }
 
-                // Админ-блок
                 if (isStaff) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
-                    
-                    // Проверка роли Engineer для 4-й кнопки
                     const engBtn = document.getElementById('engineer-btn');
                     if (roleLower === 'engineer') {
                         engBtn?.classList.remove('hidden');
@@ -327,6 +325,39 @@
             }
         }
 
+        async function sendBroadcast() {
+            const message = document.getElementById('broadcast-msg').value;
+            if(!message.trim()) {
+                tg.showAlert("Please enter a message");
+                return;
+            }
+
+            tg.MainButton.setText("Broadcasting...").show();
+
+            try {
+                const response = await fetch(ENDPOINTS.broadcast, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: APP_CONFIG.user_id,
+                        complex_id: APP_CONFIG.complex_id,
+                        message: message
+                    })
+                });
+
+                if (response.ok) {
+                    tg.MainButton.setText("Sent Successfully!").show();
+                    setTimeout(() => { closeModal(); }, 1500);
+                } else {
+                    tg.showAlert("Failed to send notification.");
+                    tg.MainButton.hide();
+                }
+            } catch (err) {
+                tg.MainButton.hide();
+                tg.showAlert("Connection error.");
+            }
+        }
+
         function openModal(type) {
             const body = document.getElementById('modal-body');
             let html = "";
@@ -351,6 +382,15 @@
                             <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
                         </div>
                         <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
+                    </div>`;
+            }
+            else if (type === 'notifications') {
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
+                    <p class="text-[9px] text-slate-500 mb-4 uppercase font-black tracking-widest">Send message to all residents</p>
+                    <div class="space-y-4">
+                        <textarea id="broadcast-msg" class="text-sm h-40" placeholder="Type your notification here..."></textarea>
+                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>
                     </div>`;
             }
             else if (type === 'in-progress') {
