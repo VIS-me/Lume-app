@@ -1,528 +1,535 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lume App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2.5rem;
-        }
-        #modal-overlay {
-            background: rgba(15, 17, 26, 0.98);
-            display: none;
-        }
-        .page { display: none; }
-        .page.active { display: block; }
-        .nav-btn { color: #475569; transition: all 0.2s; }
-        .nav-btn.active { color: #0088cc; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lume App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2.5rem;
+        }
+        #modal-overlay {
+            background: rgba(15, 17, 26, 0.98);
+            display: none;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .nav-btn { color: #475569; transition: all 0.2s; }
+        .nav-btn.active { color: #0088cc; }
 
-        input, textarea, select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.2rem;
-            padding: 1rem;
-            color: white;
-            width: 100%;
-            outline: none;
-        }
-        .finance-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 12px 0;
-        }
-        option {
-            background: #1e293b;
-            color: white;
-        }
-    </style>
+        input, textarea, select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.2rem;
+            padding: 1rem;
+            color: white;
+            width: 100%;
+            outline: none;
+        }
+        .finance-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
+        }
+        option {
+            background: #1e293b;
+            color: white;
+        }
+    </style>
 </head>
 <body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
 
-    <div id="app" class="max-w-md mx-auto p-6">
-        
-        <div class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-bold text-[#0088cc] italic">Lume<sup class="text-[10px] font-normal">©</sup></h1>
-            <div id="status-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/50">System Live</div>
-        </div>
+    <div id="app" class="max-w-md mx-auto p-6">
+        
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-bold text-[#0088cc] italic">Lume<sup class="text-[10px] font-normal">©</sup></h1>
+            <div id="status-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/50">System Live</div>
+        </div>
 
-        <!-- HOME PAGE -->
-        <div id="page-home" class="page active">
-            <div class="glass-card p-8 mb-6">
-                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
-                <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
-                <div class="flex justify-between items-end">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
-                            <p id="humidity" class="text-lg font-bold">--%</p>
-                        </div>
-                        <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
-                            <p id="wind" class="text-lg font-bold">--</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span id="temp" class="text-5xl font-light tracking-tighter text-white whitespace-nowrap">--°C</span>
-                    </div>
-                </div>
-            </div>
+        <!-- HOME PAGE -->
+        <div id="page-home" class="page active">
+            <div class="glass-card p-8 mb-6">
+                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
+                <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
+                <div class="flex justify-between items-end">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
+                            <p id="humidity" class="text-lg font-bold">--%</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
+                            <p id="wind" class="text-lg font-bold">--</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="temp" class="text-5xl font-light tracking-tighter text-white whitespace-nowrap">--°C</span>
+                    </div>
+                </div>
+            </div>
 
-            <div class="glass-card p-6 space-y-3 mb-6">
-                <button onclick="openModal('emergency')" class="w-full flex justify-between items-center p-2 bg-red-500/5 border border-red-500/10 rounded-[1.8rem]">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Emergency</span>
-                    <span class="text-red-500/20 text-xl">🚨</span>
-                </button>
-                <button onclick="openModal('uk')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem]">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Management</span>
-                    <span class="text-slate-600 text-xl">🏢</span>
-                </button>
-                <button onclick="openModal('support')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem]">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Support</span>
-                    <span class="text-slate-600 text-xl">✉️</span>
-                </button>
-            </div>
+            <div class="glass-card p-6 space-y-3 mb-6">
+                <button onclick="openModal('emergency')" class="w-full flex justify-between items-center p-2 bg-red-500/5 border border-red-500/10 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Emergency</span>
+                    <span class="text-red-500/20 text-xl">🚨</span>
+                </button>
+                <button onclick="openModal('uk')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Management</span>
+                    <span class="text-slate-600 text-xl">🏢</span>
+                </button>
+                <button onclick="openModal('support')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem]">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Support</span>
+                    <span class="text-slate-600 text-xl">✉️</span>
+                </button>
+            </div>
 
-            <div id="admin-block" class="hidden">
-                <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
-            </div>
-        </div>
+            <div id="admin-block" class="hidden">
+                <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic">Control Panel</button>
+            </div>
+        </div>
 
-        <!-- TASKS PAGE -->
-        <div id="page-tasks" class="page">
-            <div class="glass-card p-6 space-y-4">
-                <button onclick="openModal('create-order')" class="w-full py-6 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2">
-                    <span class="text-2xl">📝</span>
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
-                </button>
+        <!-- TASKS PAGE -->
+        <div id="page-tasks" class="page">
+            <div class="glass-card p-6 space-y-4">
+                <button onclick="openModal('create-order')" class="w-full py-6 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2">
+                    <span class="text-2xl">📝</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
+                </button>
 
-                <button onclick="openModal('in-progress')" class="w-full py-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2">
-                    <span class="text-2xl">⏳</span>
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
-                </button>
-            </div>
-        </div>
+                <button onclick="openModal('in-progress')" class="w-full py-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2">
+                    <span class="text-2xl">⏳</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
+                </button>
+            </div>
+        </div>
 
-        <!-- PROFILE PAGE -->
-        <div id="page-profile" class="page">
-            <div class="glass-card p-8 mb-6 text-center">
-                <img id="profile-avatar" src="" alt="👤" class="w-24 h-24 rounded-full mx-auto mb-4 border border-blue-600/20 shadow-lg object-cover">
-                <h3 id="profile-name" class="text-2xl font-bold italic tracking-tight">--</h3>
-                <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-2">--</p>
-                <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
-                <button onclick="openModal('edit-profile')" class="mt-6 text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5">Изменить</button>
-            </div>
+        <!-- PROFILE PAGE -->
+        <div id="page-profile" class="page">
+            <div class="glass-card p-8 mb-6 text-center">
+                <img id="profile-avatar" src="" alt="👤" class="w-24 h-24 rounded-full mx-auto mb-4 border border-blue-600/20 shadow-lg object-cover">
+                <h3 id="profile-name" class="text-2xl font-bold italic tracking-tight">--</h3>
+                <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-2">--</p>
+                <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
+                <button onclick="openModal('edit-profile')" class="mt-6 text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5">Изменить</button>
+            </div>
 
-            <div class="glass-card p-8">
-                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
-                <div class="space-y-1">
-                    <div class="flex justify-between finance-item">
-                        <span class="text-xs text-slate-500 font-medium">всего</span>
-                        <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">содержание</span>
-                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">горячая вода</span>
-                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">гараж</span>
-                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="glass-card p-8">
+                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
+                <div class="space-y-1">
+                    <div class="flex justify-between finance-item">
+                        <span class="text-xs text-slate-500 font-medium">всего</span>
+                        <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">содержание</span>
+                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">горячая вода</span>
+                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
+                    </div>
+                    <div class="flex justify-between finance-item text-slate-300">
+                        <span class="text-xs font-medium">гараж</span>
+                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- MODAL OVERLAY -->
-    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
-        <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16" onclick="event.stopPropagation()">
-            <div id="modal-body" class="max-h-[60vh] overflow-y-auto"></div>
-            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500">Close</button>
-        </div>
-    </div>
+    <!-- MODAL OVERLAY -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
+        <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16" onclick="event.stopPropagation()">
+            <div id="modal-body" class="max-h-[60vh] overflow-y-auto"></div>
+            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500">Close</button>
+        </div>
+    </div>
 
-    <!-- NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/80 backdrop-blur-xl border-t border-white/5 px-12 py-7 flex justify-between items-center z-50">
-        <button onclick="switchPage('home')" id="nav-home" class="nav-btn active flex flex-col items-center">
-            <span class="text-2xl">🏠</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Home</span>
-        </button>
-        <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center">
-            <span class="text-2xl">📋</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Tasks</span>
-        </button>
-        <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center">
-            <span class="text-2xl">👤</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Profile</span>
-        </button>
-    </nav>
+    <!-- NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/80 backdrop-blur-xl border-t border-white/5 px-12 py-7 flex justify-between items-center z-50">
+        <button onclick="switchPage('home')" id="nav-home" class="nav-btn active flex flex-col items-center">
+            <span class="text-2xl">🏠</span>
+            <span class="text-[8px] mt-1 font-black uppercase">Home</span>
+        </button>
+        <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center">
+            <span class="text-2xl">📋</span>
+            <span class="text-[8px] mt-1 font-black uppercase">Tasks</span>
+        </button>
+        <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center">
+            <span class="text-2xl">👤</span>
+            <span class="text-[8px] mt-1 font-black uppercase">Profile</span>
+        </button>
+    </nav>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
 
-        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        const API_URL = `${API_BASE}/api/data`;
-        const UPDATE_URL = `${API_BASE}/api/update_contacts`;
-        const ORDER_URL = `${API_BASE}/api/create_order`;
-        
-        let cachedData = null;
+        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
+        const API_URL = `${API_BASE}/api/data`;
+        const UPDATE_URL = `${API_BASE}/api/update_contacts`;
+        const ORDER_URL = `${API_BASE}/api/create_order`;
+        
+        let cachedData = null;
 
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-            document.getElementById('nav-' + pageId).classList.add('active');
-        }
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.getElementById('nav-' + pageId).classList.add('active');
+        }
 
-        async function loadData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const complex_id = urlParams.get('complex_id');
-            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
+        async function loadData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const complex_id = urlParams.get('complex_id');
+            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
 
-            if(tg.initDataUnsafe?.user?.photo_url) {
-                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
-            }
-            document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
+            if(tg.initDataUnsafe?.user?.photo_url) {
+                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
+            }
+            document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
 
-            try {
-                const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await response.json();
-                cachedData = data;
-                
-                document.getElementById('complex-display-name').innerText = data.complex_name || "--";
+            try {
+                const response = await fetch(`${API_URL}?user_id=${user_id}&complex_id=${complex_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await response.json();
+                cachedData = data;
+                
+                document.getElementById('complex-display-name').innerText = data.complex_name || "--";
 
-                // Погода
-                if (data.weather) {
-                    const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
-                    document.getElementById('temp').innerText = `${rawTemp}°C`;
-                    document.getElementById('humidity').innerText = data.weather.hum || "--%";
-                    document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
-                    
-                    if (data.weather.time) {
-                        document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
-                    }
-                }
-                
-                // Профиль
-                const aptDisplay = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
-                document.getElementById('apt-numbers').innerText = aptDisplay;
-                document.getElementById('profile-role').innerText = data.role || "--";
+                // Погода
+                if (data.weather) {
+                    const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
+                    document.getElementById('temp').innerText = `${rawTemp}°C`;
+                    document.getElementById('humidity').innerText = data.weather.hum || "--%";
+                    document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
+                    
+                    if (data.weather.time) {
+                        document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
+                    }
+                }
+                
+                // Профиль
+                const aptDisplay = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
+                document.getElementById('apt-numbers').innerText = aptDisplay;
+                document.getElementById('profile-role').innerText = data.role || "--";
 
-                // Финансы
-                if (data.finance) {
-                    const f = data.finance;
-                    const currency = f.currency || "€";
-                    document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
-                    
-                    document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
-                    document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
-                    document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
-                    document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
-                }
+                // Финансы
+                if (data.finance) {
+                    const f = data.finance;
+                    const currency = f.currency || "€";
+                    document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
+                    
+                    document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
+                    document.getElementById('debt-maintenance').innerText = (f.Maintenance_Fee || "0.00") + " " + currency;
+                    document.getElementById('debt-hotwater').innerText = (f.Hot_Water_Debt || "0.00") + " " + currency;
+                    document.getElementById('debt-garage').innerText = (f.Garage_Debt || "0.00") + " " + currency;
+                }
 
-                // Админ-панель
-                if (data.role && ['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
-                    const adminBlock = document.getElementById('admin-block');
-                    if (adminBlock) adminBlock.classList.remove('hidden');
-                }
-            } catch (err) { console.error("Data loading error:", err); }
-        }
+                // Админ-панель
+                if (data.role && ['engineer', 'director', 'administrator', 'staff'].includes(data.role.toLowerCase())) {
+                    const adminBlock = document.getElementById('admin-block');
+                    if (adminBlock) adminBlock.classList.remove('hidden');
+                }
+            } catch (err) { console.error("Data loading error:", err); }
+        }
 
-        function getTasksHtml() {
-            if (!cachedData || !cachedData.active_orders) {
-                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No requests found</p>`;
-            }
+        function getTasksHtml() {
+            if (!cachedData || !cachedData.active_orders) {
+                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No requests found</p>`;
+            }
 
-            const role = (cachedData.role || "").toLowerCase();
-            const isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(role);
-            
-            const filtered = cachedData.active_orders.filter(o => {
-                const status = String(o.status || "").toLowerCase();
-                // Фильтруем все "выполненные" статусы
-                return status !== 'done' && status !== 'выполнено';
-            });
+            const role = (cachedData.role || "").toLowerCase();
+            const isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(role);
+            
+            // Фильтрация
+            const filtered = cachedData.active_orders.filter(o => {
+                const status = String(o.status || "").toLowerCase();
+                if (isStaff) {
+                    // Стафф видит всё, кроме выполненного
+                    return status !== 'done' && status !== 'выполнено';
+                } else {
+                    // Резидент видит только свои (сервер обычно уже присылает только его, 
+                    // но оставляем логику отображения как было в коде)
+                    return true;
+                }
+            });
 
-            if (filtered.length === 0) {
-                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
-            }
+            if (filtered.length === 0) {
+                return `<p class="text-[9px] text-slate-600 text-center py-4 uppercase font-black tracking-widest">No active requests</p>`;
+            }
 
-            return filtered.map(o => {
-                const statusVal = String(o.status || "").toLowerCase();
-                const isInProgress = statusVal.includes('progress') || statusVal.includes('работе');
-                const statusClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
-                const aptTag = isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : '';
-                
-                return `
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                        <div class="flex flex-col flex-1 mr-2">
-                            ${aptTag}
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
-                        </div>
-                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase whitespace-nowrap">${o.status}</span>
-                    </div>
-                `;
-            }).join('');
-        }
+            return filtered.map(o => {
+                const statusVal = String(o.status || "").toLowerCase();
+                const isInProgress = statusVal.includes('progress') || statusVal.includes('работе');
+                const statusClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
+                const aptTag = isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : '';
+                
+                return `
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                        <div class="flex flex-col flex-1 mr-2">
+                            ${aptTag}
+                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
+                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
+                        </div>
+                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${statusClass} uppercase whitespace-nowrap">${o.status}</span>
+                    </div>
+                `;
+            }).join('');
+        }
 
-        async function sendOrder() {
-            const category = document.getElementById('order-cat').value;
-            const description = document.getElementById('order-desc').value;
-            const apartment = document.getElementById('order-apt').value;
-            
-            if(!description.trim()) {
-                tg.showAlert("Please enter description");
-                return;
-            }
-            if(!apartment.trim()) {
-                tg.showAlert("Please enter apartment or object name");
-                return;
-            }
+        async function sendOrder() {
+            const category = document.getElementById('order-cat').value;
+            const description = document.getElementById('order-desc').value;
+            const apartment = document.getElementById('order-apt').value;
+            
+            if(!description.trim()) {
+                tg.showAlert("Please enter description");
+                return;
+            }
+            if(!apartment.trim()) {
+                tg.showAlert("Please enter apartment or object name");
+                return;
+            }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const complex_id = urlParams.get('complex_id');
-            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
+            const urlParams = new URLSearchParams(window.location.search);
+            const complex_id = urlParams.get('complex_id');
+            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
 
-            tg.MainButton.setText("Sending...").show();
+            tg.MainButton.setText("Sending...").show();
 
-            try {
-                const response = await fetch(ORDER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: user_id,
-                        complex_id: complex_id,
-                        category: category,
-                        description: description,
-                        apt: apartment
-                    })
-                });
+            try {
+                const response = await fetch(ORDER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        complex_id: complex_id,
+                        category: category,
+                        description: description,
+                        apt: apartment
+                    })
+                });
 
-                if (response.ok) {
-                    tg.MainButton.setText("Order Sent!").show();
-                    setTimeout(() => {
-                        tg.MainButton.hide();
-                        closeModal();
-                        loadData(); 
-                    }, 1500);
-                } else {
-                    tg.showAlert("Failed to send order.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                console.error("Order error:", err);
-                tg.MainButton.hide();
-            }
-        }
+                if (response.ok) {
+                    tg.MainButton.setText("Order Sent!").show();
+                    setTimeout(() => {
+                        tg.MainButton.hide();
+                        closeModal();
+                        loadData(); 
+                    }, 1500);
+                } else {
+                    tg.showAlert("Failed to send order.");
+                    tg.MainButton.hide();
+                }
+            } catch (err) {
+                console.error("Order error:", err);
+                tg.MainButton.hide();
+            }
+        }
 
-        function openModal(type) {
-            const body = document.getElementById('modal-body');
-            let html = "";
+        function openModal(type) {
+            const body = document.getElementById('modal-body');
+            let html = "";
 
-            if (type === 'create-order') {
-                const servicesHtml = (cachedData && cachedData.services) 
-                    ? cachedData.services.map(s => `<option value="${s}">${s}</option>`).join('')
-                    : `<option value="Other">Other</option>`;
-                
-                let currentApt = "";
-                if (cachedData && cachedData.apt) {
-                    if (typeof cachedData.apt === 'string') {
-                        currentApt = cachedData.apt.split(',')[0].trim();
-                    } else if (Array.isArray(cachedData.apt)) {
-                        currentApt = cachedData.apt[0];
-                    }
-                }
+            if (type === 'create-order') {
+                const servicesHtml = (cachedData && cachedData.services) 
+                    ? cachedData.services.map(s => `<option value="${s}">${s}</option>`).join('')
+                    : `<option value="Other">Other</option>`;
+                
+                let currentApt = "";
+                if (cachedData && cachedData.apt) {
+                    if (typeof cachedData.apt === 'string') {
+                        currentApt = cachedData.apt.split(',')[0].trim();
+                    } else if (Array.isArray(cachedData.apt)) {
+                        currentApt = cachedData.apt[0];
+                    }
+                }
 
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p>
-                            <select id="order-cat" class="text-sm">${servicesHtml}</select>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p>
-                            <input type="text" id="order-apt" class="text-sm" placeholder="Apt, Garage, etc..." value="${currentApt}">
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
-                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
-                        </div>
-                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send Request</button>
-                    </div>`;
-            }
-            else if (type === 'in-progress') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2>
-                    <div class="space-y-1">
-                        ${getTasksHtml()}
-                    </div>`;
-            }
-            else if (type === 'emergency') {
-                html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
-                if (cachedData && cachedData.emergency && cachedData.emergency.length > 0) {
-                    cachedData.emergency.forEach(e => {
-                        const cleanPhone = String(e.Phone).replace(/\s/g, '');
-                        html += `
-                        <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
-                            <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                            <a href="tel:${cleanPhone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase decoration-none">${e.Phone}</a>
-                        </div>`;
-                    });
-                } else {
-                    html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
-                }
-            } 
-            else if (type === 'uk') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
-                if (cachedData && cachedData.management && cachedData.management.length > 0) {
-                    cachedData.management.forEach(m => {
-                        let rawVal = String(m.Value || "").trim();
-                        let valLower = rawVal.toLowerCase();
-                        let finalUrl, btnText, btnColor;
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p>
+                            <select id="order-cat" class="text-sm">${servicesHtml}</select>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p>
+                            <input type="text" id="order-apt" class="text-sm" placeholder="Apt, Garage, etc..." value="${currentApt}">
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
+                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
+                        </div>
+                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send Request</button>
+                    </div>`;
+            }
+            else if (type === 'in-progress') {
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2>
+                    <div class="space-y-1">
+                        ${getTasksHtml()}
+                    </div>`;
+            }
+            else if (type === 'emergency') {
+                html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
+                if (cachedData && cachedData.emergency && cachedData.emergency.length > 0) {
+                    cachedData.emergency.forEach(e => {
+                        const cleanPhone = String(e.Phone).replace(/\s/g, '');
+                        html += `
+                        <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
+                            <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
+                            <a href="tel:${cleanPhone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase decoration-none">${e.Phone}</a>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
+                }
+            } 
+            else if (type === 'uk') {
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
+                if (cachedData && cachedData.management && cachedData.management.length > 0) {
+                    cachedData.management.forEach(m => {
+                        let rawVal = String(m.Value || "").trim();
+                        let valLower = rawVal.toLowerCase();
+                        let finalUrl, btnText, btnColor;
 
-                        if (valLower.includes('@') || valLower.startsWith('mailto:')) {
-                            const email = rawVal.replace(/mailto:/i, '');
-                            finalUrl = `mailto:${email}`;
-                            btnText = 'Email';
-                            btnColor = 'bg-slate-600';
-                            
-                            html += `
-                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex flex-col ml-2">
-                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
-                                        <span class="font-bold text-sm text-white">${email}</span>
-                                    </div>
-                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
-                                        ${btnText}
-                                    </button>
-                                </div>
-                            </div>`;
-                        } 
-                        else if (rawVal.startsWith('+') || /^\d/.test(rawVal)) {
-                            finalUrl = `tel:${rawVal.replace(/\s/g, '')}`;
-                            btnText = 'Call';
-                            btnColor = 'bg-green-600';
-                            
-                            html += `
-                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex flex-col ml-2">
-                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
-                                        <span class="font-bold text-sm text-white">${rawVal}</span>
-                                    </div>
-                                    <a href="${finalUrl}" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50 flex items-center justify-center">
-                                        ${btnText}
-                                    </a>
-                                </div>
-                            </div>`;
-                        } 
-                        else {
-                            const cleanNick = rawVal.replace('@', '');
-                            finalUrl = `https://t.me/${cleanNick}`;
-                            btnText = 'Chat';
-                            btnColor = 'bg-[#0088cc]';
-                            
-                            html += `
-                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex flex-col ml-2">
-                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
-                                        <span class="font-bold text-sm text-white">${rawVal}</span>
-                                    </div>
-                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
-                                        ${btnText}
-                                    </button>
-                                </div>
-                            </div>`;
-                        }
-                    });
-                } else {
-                    html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
-                }
-            }
-            else if (type === 'support') {
-                html = `
-                <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
-                <p class="text-sm text-slate-300 mb-8 leading-relaxed">Technical Support and Documents.</p>
-                <div class="space-y-4">
-                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl active:bg-white/10">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
-                        <span class="text-slate-500">📄</span>
-                    </button>
-                </div>`;
-            }
-            else if (type === 'edit-profile') {
-                const currentWA = cachedData ? (cachedData.whatsapp || "") : "";
-                const currentEmail = cachedData ? (cachedData.email || "") : "";
-                html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
-                        <p class="text-[10px] text-slate-500 mb-4 uppercase font-black">Contacts for Management</p>
-                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp (например +7...)" value="${currentWA}">
-                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email..." value="${currentEmail}">
-                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Save Changes</button>`;
-            }
+                        if (valLower.includes('@') || valLower.startsWith('mailto:')) {
+                            const email = rawVal.replace(/mailto:/i, '');
+                            finalUrl = `mailto:${email}`;
+                            btnText = 'Email';
+                            btnColor = 'bg-slate-600';
+                            
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${email}</span>
+                                    </div>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>`;
+                        } 
+                        else if (rawVal.startsWith('+') || /^\d/.test(rawVal)) {
+                            finalUrl = `tel:${rawVal.replace(/\s/g, '')}`;
+                            btnText = 'Call';
+                            btnColor = 'bg-green-600';
+                            
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${rawVal}</span>
+                                    </div>
+                                    <a href="${finalUrl}" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50 flex items-center justify-center">
+                                        ${btnText}
+                                    </a>
+                                </div>
+                            </div>`;
+                        } 
+                        else {
+                            const cleanNick = rawVal.replace('@', '');
+                            finalUrl = `https://t.me/${cleanNick}`;
+                            btnText = 'Chat';
+                            btnColor = 'bg-[#0088cc]';
+                            
+                            html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex flex-col ml-2">
+                                        <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
+                                        <span class="font-bold text-sm text-white">${rawVal}</span>
+                                    </div>
+                                    <button onclick="tg.openLink('${finalUrl}')" class="${btnColor} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                } else {
+                    html += `<p class="text-slate-500 text-center">Контакты не найдены</p>`;
+                }
+            }
+            else if (type === 'support') {
+                html = `
+                <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
+                <p class="text-sm text-slate-300 mb-8 leading-relaxed">Technical Support and Documents.</p>
+                <div class="space-y-4">
+                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl active:bg-white/10">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
+                        <span class="text-slate-500">📄</span>
+                    </button>
+                </div>`;
+            }
+            else if (type === 'edit-profile') {
+                const currentWA = cachedData ? (cachedData.whatsapp || "") : "";
+                const currentEmail = cachedData ? (cachedData.email || "") : "";
+                html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
+                        <p class="text-[10px] text-slate-500 mb-4 uppercase font-black">Contacts for Management</p>
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp (например +7...)" value="${currentWA}">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email..." value="${currentEmail}">
+                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Save Changes</button>`;
+            }
 
-            body.innerHTML = html;
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
+            body.innerHTML = html;
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
 
-        async function saveProfile() {
-            const whatsapp = document.getElementById('whatsapp-input').value;
-            const email = document.getElementById('email-input').value;
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const complex_id = urlParams.get('complex_id');
-            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
+        async function saveProfile() {
+            const whatsapp = document.getElementById('whatsapp-input').value;
+            const email = document.getElementById('email-input').value;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const complex_id = urlParams.get('complex_id');
+            const user_id = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
 
-            tg.MainButton.setText("Сохранение...").show();
-            
-            try {
-                const response = await fetch(UPDATE_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: user_id,
-                        complex_id: complex_id,
-                        whatsapp: whatsapp,
-                        email: email
-                    })
-                });
+            tg.MainButton.setText("Сохранение...").show();
+            
+            try {
+                const response = await fetch(UPDATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        complex_id: complex_id,
+                        whatsapp: whatsapp,
+                        email: email
+                    })
+                });
 
-                if (response.ok) {
-                    tg.MainButton.setText("Данные обновлены!").show();
-                    setTimeout(() => { 
-                        tg.MainButton.hide(); 
-                        closeModal(); 
-                        loadData(); 
-                    }, 1500);
-                } else {
-                    tg.showAlert("Ошибка при сохранении данных.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                console.error("Save error:", err);
-                tg.showAlert("Сервер недоступен.");
-                tg.MainButton.hide();
-            }
-        }
+                if (response.ok) {
+                    tg.MainButton.setText("Данные обновлены!").show();
+                    setTimeout(() => { 
+                        tg.MainButton.hide(); 
+                        closeModal(); 
+                        loadData(); 
+                    }, 1500);
+                } else {
+                    tg.showAlert("Ошибка при сохранении данных.");
+                    tg.MainButton.hide();
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+                tg.showAlert("Сервер недоступен.");
+                tg.MainButton.hide();
+            }
+        }
 
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-        
-        loadData();
-    </script>
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        
+        loadData();
+    </script>
 </body>
 </html>
