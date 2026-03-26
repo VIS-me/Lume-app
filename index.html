@@ -249,17 +249,12 @@
             const role = (cachedData.role || "").toLowerCase();
             const isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(role);
             
-            // Фильтрация
+            // Фильтрация: и резидент, и стафф видят только невыполненные заявки. 
+            // Сервер для резидента обычно уже присылает только его заявки.
             const filtered = cachedData.active_orders.filter(o => {
                 const status = String(o.status || "").toLowerCase();
-                if (isStaff) {
-                    // Стафф видит всё, кроме выполненного
-                    return status !== 'done' && status !== 'выполнено';
-                } else {
-                    // Резидент видит только свои (сервер обычно уже присылает только его, 
-                    // но оставляем логику отображения как было в коде)
-                    return true;
-                }
+                // Исключаем статусы "выполнено" для всех ролей
+                return status !== 'done' && status !== 'выполнено';
             });
 
             if (filtered.length === 0) {
