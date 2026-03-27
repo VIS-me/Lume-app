@@ -118,7 +118,6 @@
         <!-- PROFILE PAGE -->
         <div id="page-profile" class="page">
             <div class="glass-card p-8 mb-6">
-                <!-- Контейнер для фото и имени -->
                 <div class="flex items-center space-x-6 mb-6">
                     <img id="profile-avatar" src="" alt="👤" class="w-20 h-20 rounded-full border border-blue-600/20 shadow-lg object-cover bg-slate-800 shrink-0">
                     <div class="text-left">
@@ -191,7 +190,8 @@
             update: `${API_BASE}/api/update_contacts`,
             order: `${API_BASE}/api/create_order`,
             broadcast: `${API_BASE}/api/broadcast`,
-            remind: `${API_BASE}/api/remind_payment`
+            remind: `${API_BASE}/api/remind_payment`,
+            update_status: `${API_BASE}/api/update_order_status`
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -224,8 +224,6 @@
                 cachedData = data;
                 
                 const roleLower = (data.role || "").toLowerCase();
-                
-                // Изменено: проверяем вхождение любого из ключевых слов роли для доступа к админ-блоку
                 const staffRoles = ['engineer', 'director', 'administrator', 'staff'];
                 isStaff = staffRoles.some(r => roleLower.includes(r));
 
@@ -249,18 +247,14 @@
                     document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
                     document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
                     document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
-                    
                     document.getElementById('payment-date').innerText = f.last_update || "--";
                 }
 
                 if (isStaff) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
                     const engBtn = document.getElementById('engineer-btn');
-                    // Изменено: показываем кнопку Checklist, если роль содержит 'engineer'
                     if (roleLower.includes('engineer')) {
                         engBtn?.classList.remove('hidden');
-                    } else {
-                        engBtn?.classList.add('hidden');
                     }
                 }
 
@@ -272,11 +266,38 @@
             }
         }
 
-        function getTasksHtml() {
+        async function updateOrderStatus(orderId, newStatus) {
+            tg.MainButton.setText("Updating...").show();
+            try {
+                const response = await fetch(ENDPOINTS.update_status, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({
+                        user_id: APP_CONFIG.user_id,
+                        complex_id: APP_CONFIG.complex_id,
+                        order_id: orderId,
+                        status: newStatus
+                    })
+                });
+                if (response.ok) {
+                    tg.MainButton.hide();
+                    closeModal();
+                    loadData();
+                } else {
+                    tg.showAlert("Status update failed");
+                }
+            } catch (err) {
+                tg.showAlert("Network error");
+            }
+            tg.MainButton.hide();
+        }
+
+        function getTasksHtml(mode = 'standard') {
             if (!cachedData?.active_orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No requests found</p>`;
 
             const filtered = cachedData.active_orders.filter(o => {
                 const s = String(o.status || "").toLowerCase();
+                if (mode === 'management') return s !== 'done' && s !== 'выполнено';
                 return isStaff ? (s !== 'done' && s !== 'выполнено' && s !== 'отменено' && s !== 'cancelled') : true;
             });
 
@@ -288,13 +309,18 @@
                 const sClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
                 
                 return `
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                        <div class="flex flex-col flex-1 mr-2">
-                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : ''}
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
+                    <div class="p-4 bg-white/5 rounded-2xl mb-3 border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex flex-col">
+                                <span class="text-[8px] text-slate-500 font-mono">Apt: ${o.apt || '??'}</span>
+                                <span class="text-[10px] font-bold text-blue-400 uppercase">${o.category || 'Request'}</span>
+                            </div>
+                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase">${o.status}</span>
                         </div>
-                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
+                        <p class="text-[11px] text-slate-300 mb-3">${o.desc || 'No description'}</p>
+                        ${mode === 'management' ? `
+                            <button onclick="updateOrderStatus('${o.id}', 'Done')" class="w-full py-2 bg-green-600/20 text-green-400 text-[9px] font-black uppercase rounded-xl border border-green-600/20 active:bg-green-600/40">Mark as Done</button>
+                        ` : ''}
                     </div>`;
             }).join('');
         }
@@ -314,10 +340,7 @@
             try {
                 const response = await fetch(ENDPOINTS.order, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
@@ -352,10 +375,7 @@
             try {
                 const response = await fetch(ENDPOINTS.broadcast, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
@@ -393,10 +413,7 @@
             try {
                 const response = await fetch(ENDPOINTS.remind, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
@@ -423,15 +440,7 @@
 
             if (type === 'create-order') {
                 const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
-                
-                let currentApt = "";
-                if (cachedData?.apt) {
-                    if (Array.isArray(cachedData.apt)) {
-                        currentApt = cachedData.apt[0];
-                    } else {
-                        currentApt = String(cachedData.apt).split(',')[0].trim();
-                    }
-                }
+                let currentApt = cachedData?.apt ? (Array.isArray(cachedData.apt) ? cachedData.apt[0] : String(cachedData.apt).split(',')[0].trim()) : "";
 
                 html = `
                     <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
@@ -451,33 +460,26 @@
                         <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
                     </div>`;
             }
+            else if (type === 'management') {
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Engineer Checklist</h2>
+                        <p class="text-[9px] text-slate-500 mb-4 uppercase font-black">Pending tasks for your complex</p>
+                        <div class="space-y-1">${getTasksHtml('management')}</div>`;
+            }
             else if (type === 'notifications') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
-                    <p class="text-[9px] text-slate-500 mb-4 uppercase font-black tracking-widest">Send message to all residents</p>
-                    <div class="space-y-4">
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
                         <textarea id="broadcast-msg" class="text-sm h-40" placeholder="Type your notification here..."></textarea>
-                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>
-                    </div>`;
+                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send to All</button>`;
             }
             else if (type === 'payment-reminders') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
-                    <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0. Messages will be sent in the resident's native language.</p>
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">
-                        "Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."
-                    </div>
-                    <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0.</p>
+                        <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Send Reminders</button>`;
             }
             else if (type === 'debtors') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
                 const debtors = cachedData?.all_debtors || [];
                 const currency = cachedData?.finance?.currency || '€';
-                
-                const filteredDebtors = debtors.filter(d => {
-                    const amount = parseFloat(String(d.Total_Debt || "0").replace(',', '.'));
-                    return amount > 0;
-                });
+                const filteredDebtors = debtors.filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
                 
                 if (filteredDebtors.length === 0) {
                     html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
@@ -508,7 +510,7 @@
                     html += `
                         <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
                             <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                            <a href="tel:${phone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase decoration-none active:bg-red-600">${e.Phone}</a>
+                            <a href="tel:${phone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">${e.Phone}</a>
                         </div>`;
                 });
             } 
@@ -518,14 +520,9 @@
                     const val = String(m.Value || "").trim();
                     const valL = val.toLowerCase();
                     let url, btnTxt, btnCol;
-
-                    if (valL.includes('@')) { 
-                        url = `mailto:${val}`; btnTxt = 'Email'; btnCol = 'bg-slate-600'; 
-                    } else if (/^\+?\d/.test(valL)) { 
-                        url = `tel:${val.replace(/\s/g, '')}`; btnTxt = 'Call'; btnCol = 'bg-green-600'; 
-                    } else { 
-                        url = `https://t.me/${val.replace('@','')}`; btnTxt = 'Chat'; btnCol = 'bg-[#0088cc]'; 
-                    }
+                    if (valL.includes('@')) { url = `mailto:${val}`; btnTxt = 'Email'; btnCol = 'bg-slate-600'; }
+                    else if (/^\+?\d/.test(valL)) { url = `tel:${val.replace(/\s/g, '')}`; btnTxt = 'Call'; btnCol = 'bg-green-600'; }
+                    else { url = `https://t.me/${val.replace('@','')}`; btnTxt = 'Chat'; btnCol = 'bg-[#0088cc]'; }
 
                     html += `
                         <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
@@ -533,26 +530,24 @@
                                 <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
                                 <span class="font-bold text-sm text-white">${val}</span>
                             </div>
-                            <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
+                            <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase">
                                 ${btnTxt}
                             </button>
                         </div>`;
                 });
             }
             else if (type === 'support') {
-                html = `
-                    <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
-                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl active:bg-white/10">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
-                        <span class="text-slate-500">📄</span>
-                    </button>`;
+                html = `<h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
+                        <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
+                            <span class="text-slate-500">📄</span>
+                        </button>`;
             }
             else if (type === 'edit-profile') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
-                    <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
-                    <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
-                    <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
+                html = `<h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
+                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Save Changes</button>`;
             }
 
             body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
@@ -564,10 +559,7 @@
             try {
                 const response = await fetch(ENDPOINTS.update, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
