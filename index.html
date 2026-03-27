@@ -36,10 +36,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding: 12px 0;
         }
-        option {
-            background: #1e293b;
-            color: white;
-        }
+        option { background: #1e293b; color: white; }
         #modal-body::-webkit-scrollbar { width: 4px; }
         #modal-body::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
@@ -100,17 +97,13 @@
                 <button onclick="openModal('create-order')" class="w-full py-3 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-blue-600/20">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
                 </button>
-
                 <button onclick="openModal('in-progress')" class="w-full py-3 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-white/10">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
                 </button>
 
-                <!-- Admin block -->
                 <div id="admin-block" class="hidden mt-4 space-y-3">
                     <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
-                    <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors</button>
-                    <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
-                    <!-- Кнопка Checklist для инженера -->
+                    <button onclick="openModal('finance-list')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors</button>
                     <button id="engineer-btn" onclick="openModal('checklist')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
             </div>
@@ -123,29 +116,15 @@
                 <h3 id="profile-name" class="text-2xl font-bold italic tracking-tight">--</h3>
                 <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-2">--</p>
                 <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
-                <button onclick="openModal('edit-profile')" class="mt-6 text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
             </div>
 
-            <div class="glass-card p-8">
-                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
-                <div class="space-y-1">
-                    <div class="flex justify-between finance-item">
-                        <span class="text-xs text-slate-500 font-medium">всего</span>
-                        <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">содержание</span>
-                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">горячая вода</span>
-                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">гараж</span>
-                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
-                    </div>
+            <div class="glass-card p-8 cursor-pointer active:opacity-80 transition-opacity" onclick="openModal('finance-list')">
+                <h4 class="text-xl font-bold italic mb-6">Финансы</h4>
+                <div class="flex justify-between finance-item">
+                    <span class="text-xs text-slate-500 font-medium">К оплате:</span>
+                    <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span>€</span></span>
                 </div>
+                <p class="text-[8px] text-center text-slate-600 uppercase font-black mt-4 tracking-widest italic">Нажмите для деталей по всем объектам</p>
             </div>
         </div>
     </div>
@@ -177,16 +156,8 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        const ENDPOINTS = {
-            data: `${API_BASE}/api/data`,
-            update: `${API_BASE}/api/update_contacts`,
-            order: `${API_BASE}/api/create_order`,
-            broadcast: `${API_BASE}/api/broadcast` 
-        };
-        
         const urlParams = new URLSearchParams(window.location.search);
         const APP_CONFIG = {
             complex_id: urlParams.get('complex_id'),
@@ -204,159 +175,46 @@
         }
 
         async function loadData() {
-            if(tg.initDataUnsafe?.user?.photo_url) {
-                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
-            }
+            if(tg.initDataUnsafe?.user?.photo_url) document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
             document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
 
             try {
-                const response = await fetch(`${ENDPOINTS.data}?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`, {
+                const response = await fetch(`${API_BASE}/api/data?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 cachedData = data;
                 
-                const roleLower = (data.role || "").toLowerCase();
-                isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(roleLower);
+                const role = (data.role || "").toLowerCase();
+                isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(role);
 
                 document.getElementById('complex-display-name').innerText = data.complex_name || "--";
-
-                if (data.weather) {
-                    const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
-                    document.getElementById('temp').innerText = `${rawTemp}°C`;
-                    document.getElementById('humidity').innerText = data.weather.hum || "--%";
-                    document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
-                    if (data.weather.time) document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
-                }
-                
                 document.getElementById('apt-numbers').innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
                 document.getElementById('profile-role').innerText = data.role || "--";
 
+                if (data.weather) {
+                    document.getElementById('temp').innerText = `${data.weather.temp || 0}°C`;
+                    document.getElementById('humidity').innerText = data.weather.hum || "--%";
+                    document.getElementById('wind').innerText = (data.weather.wind || 0) + " m/s";
+                }
+
                 if (data.finance) {
-                    const f = data.finance;
-                    const cur = f.currency || "€";
-                    document.querySelectorAll('.currency-label').forEach(el => el.innerText = cur);
-                    document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
-                    document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
-                    document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
-                    document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
+                    if (Array.isArray(data.finance)) {
+                        const myApt = String(data.apt || "");
+                        const myFinance = data.finance.find(f => String(f.apt || f.Apt) === myApt);
+                        document.getElementById('p-total-debt').innerText = myFinance ? (myFinance.Total_Debt || "0.00") : "0.00";
+                    } else {
+                        document.getElementById('p-total-debt').innerText = data.finance.Total_Debt || "0.00";
+                    }
                 }
 
                 if (isStaff) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
-                    const engBtn = document.getElementById('engineer-btn');
-                    if (roleLower === 'engineer') {
-                        engBtn?.classList.remove('hidden');
-                    } else {
-                        engBtn?.classList.add('hidden');
-                    }
+                    if (role === 'engineer') document.getElementById('engineer-btn')?.classList.remove('hidden');
                 }
 
             } catch (err) { 
-                console.error("Data loading error:", err);
-                const status = document.getElementById('status-label');
-                status.innerText = "Offline Mode";
-                status.classList.replace('text-blue-500/50', 'text-red-500/50');
-            }
-        }
-
-        function getTasksHtml() {
-            if (!cachedData?.active_orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No requests found</p>`;
-
-            const filtered = cachedData.active_orders.filter(o => {
-                const s = String(o.status || "").toLowerCase();
-                // Для персонала скрываем только выполненные
-                if (isStaff) return (s !== 'done' && s !== 'выполнено');
-                return true;
-            });
-
-            if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No active requests</p>`;
-
-            return filtered.map(o => {
-                const sVal = String(o.status || "").toLowerCase();
-                const isInProgress = sVal.includes('progress') || sVal.includes('работе');
-                const sClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
-                
-                return `
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                        <div class="flex flex-col flex-1 mr-2">
-                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : ''}
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
-                        </div>
-                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
-                    </div>`;
-            }).join('');
-        }
-
-        async function sendOrder() {
-            const category = document.getElementById('order-cat').value;
-            const description = document.getElementById('order-desc').value;
-            const apartment = document.getElementById('order-apt').value;
-            
-            if(!description.trim() || !apartment.trim()) {
-                tg.showAlert("Please fill all fields");
-                return;
-            }
-
-            tg.MainButton.setText("Sending...").show();
-
-            try {
-                const response = await fetch(ENDPOINTS.order, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        category: category,
-                        description: description,
-                        apt: apartment
-                    })
-                });
-
-                if (response.ok) {
-                    tg.MainButton.setText("Order Sent!").show();
-                    setTimeout(() => { closeModal(); loadData(); }, 1500);
-                } else {
-                    tg.showAlert("Failed to send order.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-                tg.showAlert("Connection error.");
-            }
-        }
-
-        async function sendBroadcast() {
-            const message = document.getElementById('broadcast-msg').value;
-            if(!message.trim()) {
-                tg.showAlert("Please enter a message");
-                return;
-            }
-
-            tg.MainButton.setText("Broadcasting...").show();
-
-            try {
-                const response = await fetch(ENDPOINTS.broadcast, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        message: message
-                    })
-                });
-
-                if (response.ok) {
-                    tg.MainButton.setText("Sent Successfully!").show();
-                    setTimeout(() => { closeModal(); }, 1500);
-                } else {
-                    tg.showAlert("Failed to send notification.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-                tg.showAlert("Connection error.");
+                console.error("Load Error:", err);
             }
         }
 
@@ -364,172 +222,102 @@
             const body = document.getElementById('modal-body');
             let html = "";
 
-            if (type === 'create-order') {
-                const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
-                const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : (cachedData?.apt || "").split(',')[0].trim();
+            if (type === 'finance-list') {
+                const financeData = cachedData?.finance;
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Ведомость задолженностей</h2>
+                    <div class="space-y-2">
+                        <div class="flex justify-between px-4 mb-2 text-[8px] font-black uppercase text-slate-500 tracking-widest">
+                            <span>Апартамент</span>
+                            <span>Сумма долга</span>
+                        </div>
+                `;
 
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p>
-                            <select id="order-cat" class="text-sm">${servicesHtml}</select>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p>
-                            <input type="text" id="order-apt" class="text-sm" placeholder="Apt, Garage, etc..." value="${currentApt}">
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
-                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
-                        </div>
-                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
-                    </div>`;
-            }
-            else if (type === 'notifications') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
-                    <p class="text-[9px] text-slate-500 mb-4 uppercase font-black tracking-widest">Send message to all residents</p>
-                    <div class="space-y-4">
-                        <textarea id="broadcast-msg" class="text-sm h-40" placeholder="Type your notification here..."></textarea>
-                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>
-                    </div>`;
-            }
-            else if (type === 'debtors') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
-                const debtors = cachedData?.all_debtors || [];
-                const currency = cachedData?.finance?.currency || '€';
-                const filteredDebtors = debtors.filter(d => parseFloat(d.Total_Debt || 0) > 0);
-                
-                if (filteredDebtors.length === 0) {
-                    html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
-                } else {
-                    filteredDebtors.forEach(d => {
+                if (Array.isArray(financeData)) {
+                    financeData.forEach(item => {
+                        const aptNum = item.apt || item.Apt || "N/A";
+                        const debt = item.Total_Debt || item.total_debt || "0.00";
+                        const isDebt = parseFloat(debt) > 0;
+
                         html += `
                         <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div class="flex flex-col">
-                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p>
-                                <span class="text-sm font-bold text-slate-200">${d.apt}</span>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p>
-                                <span class="text-sm font-black text-red-400">${d.Total_Debt} ${currency}</span>
-                            </div>
+                            <span class="text-sm font-bold text-slate-200">Apt: ${aptNum}</span>
+                            <span class="text-sm font-black ${isDebt ? 'text-red-400' : 'text-green-400'}">${debt} €</span>
                         </div>`;
                     });
+                } else {
+                    html += `<p class="text-center py-10 text-slate-600 uppercase text-[10px] font-black">Данные отсутствуют</p>`;
                 }
                 html += `</div>`;
             }
+            else if (type === 'create-order') {
+                const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : (cachedData?.apt || "").split(',')[0];
+                const services = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
+                    <div class="space-y-4">
+                        <select id="order-cat" class="text-sm">${services}</select>
+                        <input type="text" id="order-apt" class="text-sm" value="${currentApt}">
+                        <textarea id="order-desc" class="text-sm h-32" placeholder="Describe the issue..."></textarea>
+                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4">Send Request</button>
+                    </div>`;
+            }
             else if (type === 'in-progress') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2>`;
+                if (cachedData?.active_orders?.length) {
+                    cachedData.active_orders.forEach(o => {
+                        html += `<div class="p-4 bg-white/5 rounded-2xl mb-2 border border-white/5 text-left">
+                            <div class="flex justify-between items-start mb-1"><span class="text-[10px] font-black text-blue-400 uppercase">${o.category}</span></div>
+                            <p class="text-[11px] text-slate-300">${o.desc}</p>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p class="text-center py-10 text-[9px] font-black text-slate-600 uppercase">No active tasks</p>`;
+                }
             }
             else if (type === 'emergency') {
                 html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
                 cachedData?.emergency?.forEach(e => {
-                    const phone = String(e.Phone).replace(/\s/g, '');
-                    html += `
-                        <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
-                            <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                            <a href="tel:${phone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase decoration-none active:bg-red-600">${e.Phone}</a>
-                        </div>`;
+                    html += `<div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
+                        <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
+                        <a href="tel:${String(e.Phone).replace(/\s/g, '')}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">${e.Phone}</a>
+                    </div>`;
                 });
-            } 
+            }
             else if (type === 'uk') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management</h2>`;
                 cachedData?.management?.forEach(m => {
-                    const val = String(m.Value || "").trim();
-                    const valL = val.toLowerCase();
-                    let url, btnTxt, btnCol;
-
-                    if (valL.includes('@')) { 
-                        url = `mailto:${val}`; btnTxt = 'Email'; btnCol = 'bg-slate-600'; 
-                    } else if (/^\+?\d/.test(valL)) { 
-                        url = `tel:${val.replace(/\s/g, '')}`; btnTxt = 'Call'; btnCol = 'bg-green-600'; 
-                    } else { 
-                        url = `https://t.me/${val.replace('@','')}`; btnTxt = 'Chat'; btnCol = 'bg-[#0088cc]'; 
-                    }
-
-                    html += `
-                        <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
-                            <div class="flex flex-col ml-2">
-                                <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
-                                <span class="font-bold text-sm text-white">${val}</span>
-                            </div>
-                            <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
-                                ${btnTxt}
-                            </button>
-                        </div>`;
+                    html += `<div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
+                        <div class="ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm">${m.Value}</span></div>
+                        <button onclick="window.location.href='tel:${m.Value}'" class="bg-green-600 text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase">Call</button>
+                    </div>`;
                 });
             }
-            else if (type === 'support') {
-                html = `
-                    <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
-                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl active:bg-white/10">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
-                        <span class="text-slate-500">📄</span>
-                    </button>`;
-            }
-            else if (type === 'edit-profile') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
-                    <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
-                    <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
-                    <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
-            }
-            else if (type === 'management') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Action</h2>
-                        <p class="text-slate-400 text-sm">Feature coming soon...</p>`;
-            }
-            else if (type === 'checklist') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Engineer Checklist</h2>
-                        <div class="space-y-4">
-                            <p class="text-slate-400 text-[11px] uppercase font-black">Daily routine checks</p>
-                            <!-- Пример списка -->
-                            <div class="flex items-center space-x-3 p-3 bg-white/5 rounded-2xl">
-                                <input type="checkbox" class="w-5 h-5 accent-blue-500">
-                                <span class="text-sm">Check pump station</span>
-                            </div>
-                             <div class="flex items-center space-x-3 p-3 bg-white/5 rounded-2xl">
-                                <input type="checkbox" class="w-5 h-5 accent-blue-500">
-                                <span class="text-sm">Lighting inspection</span>
-                            </div>
-                        </div>`;
-            }
 
-            body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
+            body.innerHTML = html || `<p class="text-center text-slate-500 py-10">No data</p>`;
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
-        async function saveProfile() {
-            tg.MainButton.setText("Saving...").show();
+        async function sendOrder() {
+            const category = document.getElementById('order-cat').value;
+            const description = document.getElementById('order-desc').value;
+            const apartment = document.getElementById('order-apt').value;
+            if(!description.trim()) return tg.showAlert("Please describe the issue");
+            tg.MainButton.setText("Sending...").show();
             try {
-                const response = await fetch(ENDPOINTS.update, {
+                const res = await fetch(`${API_BASE}/api/create_order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        whatsapp: document.getElementById('whatsapp-input').value,
-                        email: document.getElementById('email-input').value
-                    })
+                    body: JSON.stringify({ user_id: APP_CONFIG.user_id, complex_id: APP_CONFIG.complex_id, category, description, apt: apartment })
                 });
-                if (response.ok) {
-                    tg.MainButton.setText("Success!").show();
-                    setTimeout(() => { closeModal(); loadData(); }, 1500);
-                } else {
-                    tg.MainButton.hide();
-                    tg.showAlert("Error saving data");
+                if (res.ok) {
+                    tg.MainButton.setText("Done!").show();
+                    setTimeout(() => { closeModal(); loadData(); }, 1000);
                 }
-            } catch (err) {
-                tg.MainButton.hide();
-            }
+            } catch (e) { tg.MainButton.hide(); }
         }
 
-        function closeModal() { 
-            document.getElementById('modal-overlay').style.display = 'none'; 
-            tg.MainButton.hide();
-        }
-        
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; tg.MainButton.hide(); }
         loadData();
     </script>
 </body>
