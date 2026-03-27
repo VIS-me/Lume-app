@@ -117,12 +117,19 @@
 
         <!-- PROFILE PAGE -->
         <div id="page-profile" class="page">
-            <div class="glass-card p-8 mb-6 text-center">
-                <img id="profile-avatar" src="" alt="👤" class="w-24 h-24 rounded-full mx-auto mb-4 border border-blue-600/20 shadow-lg object-cover bg-slate-800">
-                <h3 id="profile-name" class="text-2xl font-bold italic tracking-tight">--</h3>
-                <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-2">--</p>
-                <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
-                <button onclick="openModal('edit-profile')" class="mt-6 text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
+            <div class="glass-card p-8 mb-6">
+                <!-- Контейнер для фото и имени -->
+                <div class="flex items-center space-x-6 mb-6">
+                    <img id="profile-avatar" src="" alt="👤" class="w-20 h-20 rounded-full border border-blue-600/20 shadow-lg object-cover bg-slate-800 shrink-0">
+                    <div class="text-left">
+                        <h3 id="profile-name" class="text-xl font-bold italic tracking-tight">--</h3>
+                        <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-1">--</p>
+                        <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
+                </div>
             </div>
 
             <div class="glass-card p-8">
@@ -372,7 +379,6 @@
             if (type === 'create-order') {
                 const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
                 
-                // Исправлено определение текущего апартамента
                 let currentApt = "";
                 if (cachedData?.apt) {
                     if (Array.isArray(cachedData.apt)) {
