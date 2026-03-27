@@ -111,7 +111,7 @@
                     <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
                     <!-- Кнопка Checklist для инженера -->
-                    <button id="engineer-btn" onclick="openModal('management')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
+                    <button id="engineer-btn" onclick="openModal('checklist')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
             </div>
         </div>
@@ -265,7 +265,9 @@
 
             const filtered = cachedData.active_orders.filter(o => {
                 const s = String(o.status || "").toLowerCase();
-                return isStaff ? (s !== 'done' && s !== 'выполнено') : true;
+                // Для персонала скрываем только выполненные
+                if (isStaff) return (s !== 'done' && s !== 'выполнено');
+                return true;
             });
 
             if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No active requests</p>`;
@@ -473,6 +475,25 @@
                     <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
                     <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
                     <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
+            }
+            else if (type === 'management') {
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Action</h2>
+                        <p class="text-slate-400 text-sm">Feature coming soon...</p>`;
+            }
+            else if (type === 'checklist') {
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Engineer Checklist</h2>
+                        <div class="space-y-4">
+                            <p class="text-slate-400 text-[11px] uppercase font-black">Daily routine checks</p>
+                            <!-- Пример списка -->
+                            <div class="flex items-center space-x-3 p-3 bg-white/5 rounded-2xl">
+                                <input type="checkbox" class="w-5 h-5 accent-blue-500">
+                                <span class="text-sm">Check pump station</span>
+                            </div>
+                             <div class="flex items-center space-x-3 p-3 bg-white/5 rounded-2xl">
+                                <input type="checkbox" class="w-5 h-5 accent-blue-500">
+                                <span class="text-sm">Lighting inspection</span>
+                            </div>
+                        </div>`;
             }
 
             body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
