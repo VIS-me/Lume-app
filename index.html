@@ -224,7 +224,10 @@
                 cachedData = data;
                 
                 const roleLower = (data.role || "").toLowerCase();
-                isStaff = ['engineer', 'director', 'administrator', 'staff'].includes(roleLower);
+                
+                // Изменено: проверяем вхождение любого из ключевых слов роли для доступа к админ-блоку
+                const staffRoles = ['engineer', 'director', 'administrator', 'staff'];
+                isStaff = staffRoles.some(r => roleLower.includes(r));
 
                 document.getElementById('complex-display-name').innerText = data.complex_name || "--";
 
@@ -253,7 +256,8 @@
                 if (isStaff) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
                     const engBtn = document.getElementById('engineer-btn');
-                    if (roleLower === 'engineer') {
+                    // Изменено: показываем кнопку Checklist, если роль содержит 'engineer'
+                    if (roleLower.includes('engineer')) {
                         engBtn?.classList.remove('hidden');
                     } else {
                         engBtn?.classList.add('hidden');
