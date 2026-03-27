@@ -379,7 +379,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
-                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
+                            <input type="text" id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?">
                         </div>
                         <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
                     </div>`;
@@ -395,9 +395,16 @@
             }
             else if (type === 'debtors') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
+                
+                // Используем виртуальный массив all_debtors из бэкэнда
                 const debtors = cachedData?.all_debtors || [];
                 const currency = cachedData?.finance?.currency || '€';
-                const filteredDebtors = debtors.filter(d => parseFloat(d.Total_Debt || 0) > 0);
+                
+                // Фильтруем только тех, у кого долг больше нуля
+                const filteredDebtors = debtors.filter(d => {
+                    const amount = parseFloat(String(d.Total_Debt || "0").replace(',', '.'));
+                    return amount > 0;
+                });
                 
                 if (filteredDebtors.length === 0) {
                     html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
@@ -407,7 +414,7 @@
                         <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
                             <div class="flex flex-col">
                                 <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p>
-                                <span class="text-sm font-bold text-slate-200">${d.apt}</span>
+                                <span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span>
                             </div>
                             <div class="text-right">
                                 <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p>
