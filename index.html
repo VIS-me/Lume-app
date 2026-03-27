@@ -108,9 +108,8 @@
                 <!-- Admin block -->
                 <div id="admin-block" class="hidden mt-4 space-y-3">
                     <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
-                    <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors</button>
+                    <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
                     <button onclick="openModal('management')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
-                    <!-- Кнопка Checklist для инженера -->
                     <button id="engineer-btn" onclick="openModal('management')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
             </div>
@@ -226,7 +225,6 @@
                     document.getElementById('temp').innerText = `${rawTemp}°C`;
                     document.getElementById('humidity').innerText = data.weather.hum || "--%";
                     document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
-                    if (data.weather.time) document.getElementById('payment-date').innerText = data.weather.time.split(' ')[0];
                 }
                 
                 document.getElementById('apt-numbers').innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
@@ -240,6 +238,9 @@
                     document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
                     document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
                     document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
+                    
+                    // Обновляем дату последнего обновления из финансов
+                    document.getElementById('payment-date').innerText = f.last_update || "--";
                 }
 
                 if (isStaff) {
@@ -265,7 +266,7 @@
 
             const filtered = cachedData.active_orders.filter(o => {
                 const s = String(o.status || "").toLowerCase();
-                return isStaff ? (s !== 'done' && s !== 'выполнено') : true;
+                return isStaff ? (s !== 'done' && s !== 'выполнено' && s !== 'отменено' && s !== 'cancelled') : true;
             });
 
             if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No active requests</p>`;
@@ -302,7 +303,10 @@
             try {
                 const response = await fetch(ENDPOINTS.order, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
@@ -337,7 +341,10 @@
             try {
                 const response = await fetch(ENDPOINTS.broadcast, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
@@ -364,7 +371,16 @@
 
             if (type === 'create-order') {
                 const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
-                const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : (cachedData?.apt || "").split(',')[0].trim();
+                
+                // Исправлено определение текущего апартамента
+                let currentApt = "";
+                if (cachedData?.apt) {
+                    if (Array.isArray(cachedData.apt)) {
+                        currentApt = cachedData.apt[0];
+                    } else {
+                        currentApt = String(cachedData.apt).split(',')[0].trim();
+                    }
+                }
 
                 html = `
                     <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
@@ -379,7 +395,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
-                            <input type="text" id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?">
+                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
                         </div>
                         <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
                     </div>`;
@@ -395,12 +411,9 @@
             }
             else if (type === 'debtors') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
-                
-                // Используем виртуальный массив all_debtors из бэкэнда
                 const debtors = cachedData?.all_debtors || [];
                 const currency = cachedData?.finance?.currency || '€';
                 
-                // Фильтруем только тех, у кого долг больше нуля
                 const filteredDebtors = debtors.filter(d => {
                     const amount = parseFloat(String(d.Total_Debt || "0").replace(',', '.'));
                     return amount > 0;
@@ -491,7 +504,10 @@
             try {
                 const response = await fetch(ENDPOINTS.update, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({
                         user_id: APP_CONFIG.user_id,
                         complex_id: APP_CONFIG.complex_id,
