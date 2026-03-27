@@ -2,597 +2,281 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lume App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Empire Management</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2.5rem;
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --accent: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --radius: 12px;
         }
-        #modal-overlay {
-            background: rgba(15, 17, 26, 0.98);
-            display: none;
-        }
-        .page { display: none; }
-        .page.active { display: block; }
-        .nav-btn { color: #475569; transition: all 0.2s; }
-        .nav-btn.active { color: #0088cc; }
 
-        input, textarea, select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.2rem;
-            padding: 1rem;
-            color: white;
-            width: 100%;
-            outline: none;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0; padding: 0 0 80px 0;
+            overflow-x: hidden;
         }
-        .finance-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 6px 0;
+
+        /* Layout */
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
         }
-        option {
-            background: #1e293b;
-            color: white;
+        .card-title { font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; text-align: center; }
+        .stat-value { display: block; font-size: 1.1em; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75em; color: #777; }
+
+        /* Forms */
+        input, select, textarea {
+            width: 100%; padding: 12px; margin-top: 8px;
+            border: 1px solid #ddd; border-radius: 8px; font-size: 16px;
         }
-        #modal-body::-webkit-scrollbar { width: 4px; }
-        #modal-body::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+        button {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px;
         }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; display: flex; justify-content: space-around;
+            padding: 10px 0; border-top: 1px solid #eee; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #999; font-size: 12px; text-decoration: none; flex: 1;
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+
+        /* Admin/Engineer Blocks */
+        .admin-only, .eng-only { display: none; border: 1px dashed var(--accent); padding: 10px; margin-top: 10px; }
+        
+        /* Weather & Status */
+        .weather-info { font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
+        .status-online { background: #e3f9e5; color: var(--success); }
     </style>
 </head>
-<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
+<body>
 
-    <div id="app" class="max-w-md mx-auto p-6">
-        
-        <div class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-bold text-[#0088cc] italic">Lume<sup class="text-[10px] font-normal">©</sup></h1>
-            <div id="status-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/50">System Live</div>
-        </div>
-
-        <!-- HOME PAGE -->
-        <div id="page-home" class="page active">
-            <div class="glass-card p-8 mb-6">
-                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
-                <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
-                <div class="flex justify-between items-end">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
-                            <p id="humidity" class="text-lg font-bold">--%</p>
-                        </div>
-                        <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
-                            <p id="wind" class="text-lg font-bold">--</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span id="temp" class="text-5xl font-light tracking-tighter text-white whitespace-nowrap">--°C</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card p-6 space-y-3 mb-6">
-                <button onclick="openModal('emergency')" class="w-full flex justify-between items-center p-2 bg-red-500/5 border border-red-500/10 rounded-[1.8rem] active:opacity-70 transition-opacity">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Emergency</span>
-                    <span class="text-red-500/20 text-xl">🚨</span>
-                </button>
-                <button onclick="openModal('uk')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem] active:opacity-70 transition-opacity">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Management</span>
-                    <span class="text-slate-600 text-xl">🏢</span>
-                </button>
-                <button onclick="openModal('support')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/5 rounded-[1.8rem] active:opacity-70 transition-opacity">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Support</span>
-                    <span class="text-slate-600 text-xl">✉️</span>
-                </button>
+<div class="container">
+    <!-- HOME SECTION -->
+    <section id="home" class="section active">
+        <div class="card">
+            <div class="weather-info" id="weather-box">
+                <span><i class="fas fa-location-dot"></i> Будва, Бечичи</span>
+                <span id="temp-val">--°C</span>
             </div>
         </div>
 
-        <!-- TASKS PAGE -->
-        <div id="page-tasks" class="page">
-            <div class="glass-card p-6 space-y-4">
-                <button onclick="openModal('create-order')" class="w-full py-3 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-blue-600/20">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
-                </button>
-
-                <button onclick="openModal('in-progress')" class="w-full py-3 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-white/10">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
-                </button>
-
-                <!-- Admin block -->
-                <div id="admin-block" class="hidden mt-4 space-y-3">
-                    <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
-                    <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
-                    <button onclick="openModal('payment-reminders')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
-                    <button id="engineer-btn" onclick="openModal('management')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
-                </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-wallet text-accent"></i> Мой баланс</div>
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-value" id="debt-maintenance">0€</span><span class="stat-label">Содержание</span></div>
+                <div class="stat-item"><span class="stat-value" id="debt-water">0€</span><span class="stat-label">Вода</span></div>
+                <div class="stat-item"><span class="stat-value" id="debt-electricity">0€</span><span class="stat-label">Электричество</span></div>
+                <div class="stat-item"><span class="stat-value" id="debt-garage">0€</span><span class="stat-label">Гараж</span></div>
             </div>
         </div>
 
-        <!-- PROFILE PAGE -->
-        <div id="page-profile" class="page">
-            <div class="glass-card p-8 mb-6">
-                <!-- Контейнер для фото и имени -->
-                <div class="flex items-center space-x-6 mb-6">
-                    <img id="profile-avatar" src="" alt="👤" class="w-20 h-20 rounded-full border border-blue-600/20 shadow-lg object-cover bg-slate-800 shrink-0">
-                    <div class="text-left">
-                        <h3 id="profile-name" class="text-xl font-bold italic tracking-tight">--</h3>
-                        <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-1">--</p>
-                        <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <button onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
-                </div>
-            </div>
-
-            <div class="glass-card p-8">
-                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
-                <div class="space-y-1">
-                    <div class="flex justify-between finance-item">
-                        <span class="text-xs text-slate-500 font-medium">всего</span>
-                        <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">содержание</span>
-                        <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">горячая вода</span>
-                        <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                    <div class="flex justify-between finance-item text-slate-300">
-                        <span class="text-xs font-medium">гараж</span>
-                        <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
-                    </div>
-                </div>
-            </div>
+        <div class="card eng-only" id="eng-panel">
+            <div class="card-title"><i class="fas fa-tools"></i> Панель инженера</div>
+            <button class="btn-primary" onclick="window.location.href='checklist.html'"><i class="fas fa-list-check"></i> Обход объектов</button>
         </div>
-    </div>
 
-    <!-- MODAL OVERLAY -->
-    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
-        <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
-            <div id="modal-body" class="max-h-[60vh] overflow-y-auto"></div>
-            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500 active:bg-white/10">Close</button>
+        <div class="card admin-only" id="admin-panel">
+            <div class="card-title"><i class="fas fa-user-shield"></i> Управление</div>
+            <button onclick="toggleDebtors()" class="btn-primary">Список должников</button>
+            <div id="debtors-list" style="display:none; margin-top:10px; font-size: 0.85em;"></div>
+            <textarea id="broadcast-msg" placeholder="Текст рассылки жильцам..."></textarea>
+            <button onclick="sendBroadcast()" class="btn-success">Отправить рассылку</button>
         </div>
-    </div>
+    </section>
 
-    <!-- NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/80 backdrop-blur-xl border-t border-white/5 px-12 py-7 flex justify-between items-center z-50">
-        <button onclick="switchPage('home')" id="nav-home" class="nav-btn active flex flex-col items-center">
-            <span class="text-2xl">🏠</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Home</span>
-        </button>
-        <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center">
-            <span class="text-2xl">📋</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Tasks</span>
-        </button>
-        <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center">
-            <span class="text-2xl">👤</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Profile</span>
-        </button>
-    </nav>
+    <!-- TASKS SECTION -->
+    <section id="tasks" class="section">
+        <div class="card">
+            <div class="card-title">Создать заявку</div>
+            <select id="task-type">
+                <option value="plumbing">Сантехника</option>
+                <option value="electrical">Электрика</option>
+                <option value="cleaning">Уборка</option>
+                <option value="other">Другое</option>
+            </select>
+            <textarea id="task-desc" rows="3" placeholder="Опишите проблему..."></textarea>
+            <button onclick="submitTask()" class="btn-primary">Отправить в работу</button>
+        </div>
+        <div id="my-tasks-list"></div>
+    </section>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+    <!-- PROFILE SECTION -->
+    <section id="profile" class="section">
+        <div class="card" style="text-align: center;">
+            <div id="user-avatar" style="font-size: 50px; margin-bottom: 10px;"><i class="fas fa-circle-user"></i></div>
+            <h2 id="user-full-name" style="margin:0;">Загрузка...</h2>
+            <p id="user-role" style="color: #666; font-size: 0.9em; margin-top: 5px;">Resident</p>
+        </div>
+        <div class="card">
+            <div class="card-title">Информация</div>
+            <p><strong>Апартаменты:</strong> <span id="user-apt">--</span></p>
+            <p><strong>ID:</strong> <span id="user-id">--</span></p>
+            <button onclick="tg.close()" style="background:#eee; color:#333;">Закрыть приложение</button>
+        </div>
+    </section>
+</div>
 
-        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        const ENDPOINTS = {
-            data: `${API_BASE}/api/data`,
-            update: `${API_BASE}/api/update_contacts`,
-            order: `${API_BASE}/api/create_order`,
-            broadcast: `${API_BASE}/api/broadcast`,
-            remind: `${API_BASE}/api/remind_payment`
-        };
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const APP_CONFIG = {
-            complex_id: urlParams.get('complex_id'),
-            user_id: urlParams.get('user_id') || tg.initDataUnsafe?.user?.id
-        };
+<nav class="nav-bar">
+    <a href="#" class="nav-item active" onclick="showTab('home', this)"><i class="fas fa-house"></i>Главная</a>
+    <a href="#" class="nav-item" onclick="showTab('tasks', this)"><i class="fas fa-list-ul"></i>Заявки</a>
+    <a href="#" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user"></i>Профиль</a>
+</nav>
 
-        let cachedData = null;
-        let isStaff = false;
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
 
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-            document.getElementById('nav-' + pageId).classList.add('active');
-        }
+    let currentUser = {
+        id: tg.initDataUnsafe?.user?.id || '660601831',
+        role: 'Resident',
+        name: tg.initDataUnsafe?.user?.first_name || 'Пользователь'
+    };
 
-        async function loadData() {
-            if(tg.initDataUnsafe?.user?.photo_url) {
-                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
-            }
-            document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
+    // Функция проверки ролей (поддерживает мульти-роли)
+    function hasRole(roleName) {
+        return currentUser.role.toLowerCase().includes(roleName.toLowerCase());
+    }
 
-            try {
-                const response = await fetch(`${ENDPOINTS.data}?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await response.json();
-                cachedData = data;
-                
-                const roleLower = (data.role || "").toLowerCase();
-                
-                // Изменено: проверяем вхождение любого из ключевых слов роли для доступа к админ-блоку
-                const staffRoles = ['engineer', 'director', 'administrator', 'staff'];
-                isStaff = staffRoles.some(r => roleLower.includes(r));
-
-                document.getElementById('complex-display-name').innerText = data.complex_name || "--";
-
-                if (data.weather) {
-                    const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
-                    document.getElementById('temp').innerText = `${rawTemp}°C`;
-                    document.getElementById('humidity').innerText = data.weather.hum || "--%";
-                    document.getElementById('wind').innerText = (data.weather.wind || "0") + " m/s";
-                }
-                
-                document.getElementById('apt-numbers').innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
-                document.getElementById('profile-role').innerText = data.role || "--";
-
-                if (data.finance) {
-                    const f = data.finance;
-                    const cur = f.currency || "€";
-                    document.querySelectorAll('.currency-label').forEach(el => el.innerText = cur);
-                    document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
-                    document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
-                    document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
-                    document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
-                    
-                    document.getElementById('payment-date').innerText = f.last_update || "--";
-                }
-
-                if (isStaff) {
-                    document.getElementById('admin-block')?.classList.remove('hidden');
-                    const engBtn = document.getElementById('engineer-btn');
-                    // Изменено: показываем кнопку Checklist, если роль содержит 'engineer'
-                    if (roleLower.includes('engineer')) {
-                        engBtn?.classList.remove('hidden');
-                    } else {
-                        engBtn?.classList.add('hidden');
-                    }
-                }
-
-            } catch (err) { 
-                console.error("Data loading error:", err);
-                const status = document.getElementById('status-label');
-                status.innerText = "Offline Mode";
-                status.classList.replace('text-blue-500/50', 'text-red-500/50');
-            }
-        }
-
-        function getTasksHtml() {
-            if (!cachedData?.active_orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No requests found</p>`;
-
-            const filtered = cachedData.active_orders.filter(o => {
-                const s = String(o.status || "").toLowerCase();
-                return isStaff ? (s !== 'done' && s !== 'выполнено' && s !== 'отменено' && s !== 'cancelled') : true;
-            });
-
-            if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No active requests</p>`;
-
-            return filtered.map(o => {
-                const sVal = String(o.status || "").toLowerCase();
-                const isInProgress = sVal.includes('progress') || sVal.includes('работе');
-                const sClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
-                
-                return `
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                        <div class="flex flex-col flex-1 mr-2">
-                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : ''}
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
-                        </div>
-                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
-                    </div>`;
-            }).join('');
-        }
-
-        async function sendOrder() {
-            const category = document.getElementById('order-cat').value;
-            const description = document.getElementById('order-desc').value;
-            const apartment = document.getElementById('order-apt').value;
+    // Инициализация данных
+    async function initApp() {
+        try {
+            const response = await fetch(`https://script.google.com/macros/s/ВАШ_ID/exec?action=getUserData&userId=${currentUser.id}`);
+            const data = await response.json();
             
-            if(!description.trim() || !apartment.trim()) {
-                tg.showAlert("Please fill all fields");
-                return;
+            if (data) {
+                currentUser = { ...currentUser, ...data };
+                updateUI();
             }
+        } catch (e) {
+            console.error("Ошибка загрузки:", e);
+            updateUI(); // Показать дефолт, если упало
+        }
+    }
 
-            tg.MainButton.setText("Sending...").show();
+    function updateUI() {
+        // Профиль
+        document.getElementById('user-full-name').innerText = currentUser.name;
+        document.getElementById('user-role').innerText = currentUser.role;
+        document.getElementById('user-apt').innerText = currentUser.apt || 'Не привязан';
+        document.getElementById('user-id').innerText = currentUser.id;
 
-            try {
-                const response = await fetch(ENDPOINTS.order, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        category: category,
-                        description: description,
-                        apt: apartment
-                    })
-                });
+        // Баланс
+        document.getElementById('debt-maintenance').innerText = (currentUser.debt_m || 0) + '€';
+        document.getElementById('debt-water').innerText = (currentUser.debt_w || 0) + '€';
+        document.getElementById('debt-electricity').innerText = (currentUser.debt_e || 0) + '€';
+        document.getElementById('debt-garage').innerText = (currentUser.debt_g || 0) + '€';
 
-                if (response.ok) {
-                    tg.MainButton.setText("Order Sent!").show();
-                    setTimeout(() => { closeModal(); loadData(); }, 1500);
-                } else {
-                    tg.showAlert("Failed to send order.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-                tg.showAlert("Connection error.");
-            }
+        // Доступ к панелям
+        if (hasRole('Director')) {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('eng-panel').style.display = 'block';
+        } else if (hasRole('Engineer')) {
+            document.getElementById('eng-panel').style.display = 'block';
         }
 
-        async function sendBroadcast() {
-            const message = document.getElementById('broadcast-msg').value;
-            if(!message.trim()) {
-                tg.showAlert("Please enter a message");
-                return;
-            }
+        fetchWeather();
+    }
 
-            tg.MainButton.setText("Broadcasting...").show();
-
-            try {
-                const response = await fetch(ENDPOINTS.broadcast, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        message: message
-                    })
-                });
-
-                if (response.ok) {
-                    tg.MainButton.setText("Sent Successfully!").show();
-                    setTimeout(() => { closeModal(); }, 1500);
-                } else {
-                    tg.showAlert("Failed to send notification.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-                tg.showAlert("Connection error.");
-            }
-        }
-
-        async function sendPaymentReminders() {
-            const debtors = cachedData?.all_debtors || [];
-            const toNotify = debtors.filter(d => {
-                const amount = parseFloat(String(d.Total_Debt || "0").replace(',', '.'));
-                return amount > 0;
-            });
-
-            if (toNotify.length === 0) {
-                tg.showAlert("No debtors to notify.");
-                return;
-            }
-
-            tg.MainButton.setText(`Sending to ${toNotify.length} residents...`).show();
-
-            try {
-                const response = await fetch(ENDPOINTS.remind, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        debtors: toNotify
-                    })
-                });
-
-                if (response.ok) {
-                    tg.MainButton.setText("Reminders Sent!").show();
-                    setTimeout(() => { closeModal(); }, 1500);
-                } else {
-                    tg.showAlert("Failed to send reminders.");
-                    tg.MainButton.hide();
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-                tg.showAlert("Connection error.");
-            }
-        }
-
-        function openModal(type) {
-            const body = document.getElementById('modal-body');
-            let html = "";
-
-            if (type === 'create-order') {
-                const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
-                
-                let currentApt = "";
-                if (cachedData?.apt) {
-                    if (Array.isArray(cachedData.apt)) {
-                        currentApt = cachedData.apt[0];
-                    } else {
-                        currentApt = String(cachedData.apt).split(',')[0].trim();
-                    }
-                }
-
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p>
-                            <select id="order-cat" class="text-sm">${servicesHtml}</select>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p>
-                            <input type="text" id="order-apt" class="text-sm" placeholder="Apt, Garage, etc..." value="${currentApt}">
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p>
-                            <textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea>
-                        </div>
-                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
-                    </div>`;
-            }
-            else if (type === 'notifications') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
-                    <p class="text-[9px] text-slate-500 mb-4 uppercase font-black tracking-widest">Send message to all residents</p>
-                    <div class="space-y-4">
-                        <textarea id="broadcast-msg" class="text-sm h-40" placeholder="Type your notification here..."></textarea>
-                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>
-                    </div>`;
-            }
-            else if (type === 'payment-reminders') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
-                    <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0. Messages will be sent in the resident's native language.</p>
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">
-                        "Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."
-                    </div>
-                    <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
-            }
-            else if (type === 'debtors') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
-                const debtors = cachedData?.all_debtors || [];
-                const currency = cachedData?.finance?.currency || '€';
-                
-                const filteredDebtors = debtors.filter(d => {
-                    const amount = parseFloat(String(d.Total_Debt || "0").replace(',', '.'));
-                    return amount > 0;
-                });
-                
-                if (filteredDebtors.length === 0) {
-                    html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
-                } else {
-                    filteredDebtors.forEach(d => {
-                        html += `
-                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div class="flex flex-col">
-                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p>
-                                <span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p>
-                                <span class="text-sm font-black text-red-400">${d.Total_Debt} ${currency}</span>
-                            </div>
-                        </div>`;
-                    });
-                }
-                html += `</div>`;
-            }
-            else if (type === 'in-progress') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
-            }
-            else if (type === 'emergency') {
-                html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
-                cachedData?.emergency?.forEach(e => {
-                    const phone = String(e.Phone).replace(/\s/g, '');
-                    html += `
-                        <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
-                            <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                            <a href="tel:${phone}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase decoration-none active:bg-red-600">${e.Phone}</a>
-                        </div>`;
-                });
-            } 
-            else if (type === 'uk') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
-                cachedData?.management?.forEach(m => {
-                    const val = String(m.Value || "").trim();
-                    const valL = val.toLowerCase();
-                    let url, btnTxt, btnCol;
-
-                    if (valL.includes('@')) { 
-                        url = `mailto:${val}`; btnTxt = 'Email'; btnCol = 'bg-slate-600'; 
-                    } else if (/^\+?\d/.test(valL)) { 
-                        url = `tel:${val.replace(/\s/g, '')}`; btnTxt = 'Call'; btnCol = 'bg-green-600'; 
-                    } else { 
-                        url = `https://t.me/${val.replace('@','')}`; btnTxt = 'Chat'; btnCol = 'bg-[#0088cc]'; 
-                    }
-
-                    html += `
-                        <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
-                            <div class="flex flex-col ml-2">
-                                <p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p>
-                                <span class="font-bold text-sm text-white">${val}</span>
-                            </div>
-                            <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">
-                                ${btnTxt}
-                            </button>
-                        </div>`;
-                });
-            }
-            else if (type === 'support') {
-                html = `
-                    <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
-                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="w-full flex justify-between items-center p-2 bg-white/5 border border-white/10 rounded-3xl active:bg-white/10">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Privacy Policy</span>
-                        <span class="text-slate-500">📄</span>
-                    </button>`;
-            }
-            else if (type === 'edit-profile') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
-                    <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
-                    <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
-                    <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
-            }
-
-            body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
-
-        async function saveProfile() {
-            tg.MainButton.setText("Saving...").show();
-            try {
-                const response = await fetch(ENDPOINTS.update, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({
-                        user_id: APP_CONFIG.user_id,
-                        complex_id: APP_CONFIG.complex_id,
-                        whatsapp: document.getElementById('whatsapp-input').value,
-                        email: document.getElementById('email-input').value
-                    })
-                });
-                if (response.ok) {
-                    tg.MainButton.setText("Success!").show();
-                    setTimeout(() => { closeModal(); loadData(); }, 1500);
-                } else {
-                    tg.MainButton.hide();
-                    tg.showAlert("Error saving data");
-                }
-            } catch (err) {
-                tg.MainButton.hide();
-            }
-        }
-
-        function closeModal() { 
-            document.getElementById('modal-overlay').style.display = 'none'; 
-            tg.MainButton.hide();
-        }
+    function showTab(tabId, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         
-        loadData();
-    </script>
+        document.getElementById(tabId).classList.add('active');
+        el.classList.add('active');
+    }
+
+    async function fetchWeather() {
+        // Упрощенный запрос погоды
+        try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.28&longitude=18.84&current_weather=true');
+            const data = await res.json();
+            document.getElementById('temp-val').innerText = Math.round(data.current_weather.temperature) + '°C';
+        } catch (e) {
+            document.getElementById('temp-val').innerText = '18°C';
+        }
+    }
+
+    function submitTask() {
+        const type = document.getElementById('task-type').value;
+        const desc = document.getElementById('task-desc').value;
+        if (!desc) return alert('Опишите проблему');
+
+        tg.sendData(JSON.stringify({
+            action: 'new_task',
+            type: type,
+            desc: desc,
+            user: currentUser.id
+        }));
+        
+        alert('Заявка отправлена!');
+        document.getElementById('task-desc').value = '';
+    }
+
+    function sendBroadcast() {
+        const msg = document.getElementById('broadcast-msg').value;
+        if (!msg) return alert('Введите текст');
+        
+        tg.sendData(JSON.stringify({
+            action: 'broadcast',
+            text: msg
+        }));
+        alert('Рассылка запущена');
+        document.getElementById('broadcast-msg').value = '';
+    }
+
+    async function toggleDebtors() {
+        const list = document.getElementById('debtors-list');
+        if (list.style.display === 'none') {
+            list.innerHTML = 'Загрузка...';
+            list.style.display = 'block';
+            try {
+                const res = await fetch(`https://script.google.com/macros/s/ВАШ_ID/exec?action=getDebtors`);
+                const data = await res.json();
+                list.innerHTML = data.map(d => `<div>${d.apt}: <b>${d.total}€</b> (${d.name})</div>`).join('');
+            } catch (e) { list.innerText = 'Ошибка загрузки данных.'; }
+        } else {
+            list.style.display = 'none';
+        }
+    }
+
+    window.onload = initApp;
+</script>
+
 </body>
 </html>
