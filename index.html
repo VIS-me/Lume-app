@@ -394,8 +394,9 @@
                     </div>`;
             }
             else if (type === 'debtors') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2>`;
+                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
                 const debtors = cachedData?.all_debtors || [];
+                const currency = cachedData?.finance?.currency || '€';
                 const filteredDebtors = debtors.filter(d => parseFloat(d.Total_Debt || 0) > 0);
                 
                 if (filteredDebtors.length === 0) {
@@ -403,12 +404,19 @@
                 } else {
                     filteredDebtors.forEach(d => {
                         html += `
-                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                            <span class="text-sm font-bold text-slate-300">Apt ${d.apt}</span>
-                            <span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span>
+                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <div class="flex flex-col">
+                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p>
+                                <span class="text-sm font-bold text-slate-200">${d.apt}</span>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p>
+                                <span class="text-sm font-black text-red-400">${d.Total_Debt} ${currency}</span>
+                            </div>
                         </div>`;
                     });
                 }
+                html += `</div>`;
             }
             else if (type === 'in-progress') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
