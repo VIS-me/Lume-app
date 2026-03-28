@@ -127,7 +127,7 @@
                     <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
                     <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
                     <button onclick="openModal('payment-reminders')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
-                    <button id="engineer-btn" onclick="openModal('management')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
+                    <button id="engineer-btn" onclick="openChecklist()" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
             </div>
         </div>
@@ -349,6 +349,12 @@
             if (!debtors.length) return tg.showAlert("No debtors to notify.");
             apiRequest(ENDPOINTS.remind, { debtors }, "Reminders Sent!");
         };
+
+        // NEW: Function to open checklist page
+        function openChecklist() {
+            const url = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
+            window.location.href = url;
+        }
 
         function openModal(type) {
             const body = document.getElementById('modal-body');
