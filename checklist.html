@@ -33,7 +33,6 @@
             background: #0088cc;
             box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
         }
-        /* Анимация загрузки */
         .loader {
             border: 2px solid rgba(255,255,255,0.1);
             border-top: 2px solid #0088cc;
@@ -56,21 +55,20 @@
         <div class="w-10"></div>
     </div>
 
-    <!-- Индикатор загрузки -->
+    <!-- Загрузка -->
     <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
         <div class="loader"></div>
-        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка категорий...</p>
+        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов из Services...</p>
     </div>
 
     <div id="checklist-container" class="space-y-6 hidden">
-        <!-- Сюда скрипт вставит карточки категорий -->
+        <!-- Сюда попадут объекты из столбца Area_object -->
     </div>
 
-    <!-- Общий комментарий (скрыт до загрузки) -->
     <div id="footer-section" class="hidden">
         <div class="glass-card p-6 mt-6">
             <p class="text-[10px] text-slate-500 mb-3 uppercase font-black tracking-widest">Общее примечание</p>
-            <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему объекту..."></textarea>
+            <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему комплексу..."></textarea>
         </div>
 
         <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
@@ -83,7 +81,7 @@
         tg.expand();
 
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        const API_GET_CONFIG = `${API_BASE}/api/data`; // Используем тот же эндпоинт, где лежат сервисы
+        const API_DATA = `${API_BASE}/api/data`;
         const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -96,25 +94,24 @@
 
         async function init() {
             try {
-                // Тянем данные, чтобы получить актуальный список "services" (категорий) из таблицы
-                const response = await fetch(`${API_GET_CONFIG}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
+                // Запрашиваем данные. Бэкенд должен вернуть массив из столбца Area_object в поле services
+                const response = await fetch(`${API_DATA}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
-                // Берем список категорий из data.services
-                // Если в таблице это выпадающий список, API должен отдавать его в этом поле
-                loadedCategories = data.services || [];
+                // Фильтруем, чтобы убрать пустые значения из столбца
+                loadedCategories = (data.services || []).filter(item => item && item.trim() !== "");
 
                 if (loadedCategories.length === 0) {
-                    throw new Error("Категории не найдены");
+                    throw new Error("Список объектов пуст");
                 }
 
                 renderChecklist(loadedCategories);
             } catch (err) {
                 console.error("Load error:", err);
                 document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest">Ошибка загрузки данных</p>
+                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка: проверьте лист Services</p>
                 `;
             }
         }
@@ -122,60 +119,55 @@
         function renderChecklist(categories) {
             const container = document.getElementById('checklist-container');
             
-            // Генерируем HTML на основе полученного массива строк
-            container.innerHTML = categories.map((catName, index) => {
-                const catId = `cat_${index}`; // создаем ID на лету
+            container.innerHTML = categories.map((name, index) => {
+                const id = `cat_${index}`;
                 return `
                     <div class="glass-card p-5">
-                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${catName}</p>
+                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${name}</p>
                         
                         <div class="grid grid-cols-3 gap-2 mb-4">
-                            ${['OK', 'WARN', 'ERR'].map(status => `
+                            ${['Норма', 'Внимание', 'Авария'].map(status => `
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="status-${catId}" data-catname="${catName}" value="${status}" ${status === 'OK' ? 'checked' : ''} class="status-check hidden">
+                                    <input type="radio" name="status-${id}" value="${status}" ${status === 'Норма' ? 'checked' : ''} class="status-check hidden">
                                     <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
-                                        <span class="text-[9px] font-black uppercase ${getStatusColor(status)}">${status}</span>
+                                        <span class="text-[8px] font-black uppercase ${getStatusColor(status)}">${status}</span>
                                     </div>
                                 </label>
                             `).join('')}
                         </div>
 
-                        <input type="text" id="note-${catId}" placeholder="Добавить комментарий..." class="text-[12px]">
+                        <input type="text" id="note-${id}" placeholder="Комментарий к объекту..." class="text-[12px]">
                     </div>
                 `;
             }).join('');
 
-            // Переключаем видимость
             document.getElementById('loading-state').classList.add('hidden');
             document.getElementById('checklist-container').classList.remove('hidden');
             document.getElementById('footer-section').classList.remove('hidden');
         }
 
         function getStatusColor(status) {
-            if (status === 'OK') return 'text-green-500';
-            if (status === 'WARN') return 'text-yellow-500';
+            if (status === 'Норма') return 'text-green-500';
+            if (status === 'Внимание') return 'text-yellow-500';
             return 'text-red-500';
         }
 
         async function sendFullReport() {
-            tg.MainButton.setText("ОТПРАВКА...").show();
+            const btn = tg.MainButton;
+            btn.setText("ОТПРАВКА...").show();
             
-            // Собираем данные на основе отрисованных категорий
-            const reports = loadedCategories.map((catName, index) => {
-                const catId = `cat_${index}`;
-                return {
-                    category: catName,
-                    status: document.querySelector(`input[name="status-${catId}"]:checked`).value,
-                    note: document.getElementById(`note-${catId}`).value
-                };
-            });
+            const reports = loadedCategories.map((name, index) => ({
+                category: name,
+                status: document.querySelector(`input[name="status-cat_${index}"]:checked`).value,
+                note: document.getElementById(`note-cat_${index}`).value
+            }));
 
             const payload = {
                 user_id: USER_INFO.user_id,
                 complex_id: USER_INFO.complex_id,
                 reports: reports,
                 global_note: document.getElementById('global-note').value,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toLocaleString('ru-RU')
             };
 
             try {
@@ -186,14 +178,14 @@
                 });
 
                 if (response.ok) {
-                    tg.MainButton.setText("ОТЧЕТ ОТПРАВЛЕН").setParams({ color: "#22c55e" });
+                    btn.setText("ОТЧЕТ ПРИНЯТ").setParams({ color: "#22c55e" });
                     setTimeout(() => goBack(), 1500);
                 } else {
                     throw new Error();
                 }
             } catch (err) {
-                tg.showAlert("Ошибка при отправке отчета.");
-                tg.MainButton.hide();
+                tg.showAlert("Не удалось отправить отчет.");
+                btn.hide();
             }
         }
 
