@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lume Checklist</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f111a; color: white; font-family: sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2rem;
+        }
+        .status-check:checked + .status-label { 
+            border-color: #0088cc; 
+            background: rgba(0, 136, 204, 0.1); 
+        }
+        input, textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 0.8rem;
+            color: white;
+            width: 100%;
+            outline: none;
+            font-size: 14px;
+        }
+        .btn-send {
+            background: #0088cc;
+            box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
+        }
+    </style>
+</head>
+<body class="p-6 pb-12">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
+            <span class="text-xl">←</span>
+        </button>
+        <h1 class="text-lg font-bold italic">Technical Checklist</h1>
+        <div class="w-10"></div> <!-- Spacer -->
+    </div>
+
+    <div id="checklist-container" class="space-y-6">
+        <!-- Сюда скрипт вставит карточки категорий -->
+    </div>
+
+    <!-- Общий комментарий -->
+    <div class="glass-card p-6 mt-6">
+        <p class="text-[10px] text-slate-500 mb-3 uppercase font-black tracking-widest">Общее примечание</p>
+        <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему объекту..."></textarea>
+    </div>
+
+    <!-- Кнопка отправки -->
+    <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
+        Отправить отчет
+    </button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const API_CHECKLIST = "https://sinuate-inez-proempire.ngrok-free.dev/api/submit_checklist";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const USER_INFO = {
+            user_id: urlParams.get('user_id') || tg.initDataUnsafe?.user?.id,
+            complex_id: urlParams.get('complex_id')
+        };
+
+        const CATEGORIES = [
+            { id: 'elec', name: 'Электрика и освещение' },
+            { id: 'water', name: 'Водоснабжение и канализация' },
+            { id: 'hvac', name: 'Вентиляция и кондиционирование' },
+            { id: 'fire', name: 'Пожарная безопасность' },
+            { id: 'lift', name: 'Лифтовое оборудование' },
+            { id: 'pool', name: 'Бассейн / SPA зона' },
+            { id: 'common', name: 'Места общего пользования' }
+        ];
+
+        function init() {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = CATEGORIES.map(cat => `
+                <div class="glass-card p-5">
+                    <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${cat.name}</p>
+                    
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        ${['OK', 'WARN', 'ERR'].map(status => `
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="status-${cat.id}" value="${status}" ${status === 'OK' ? 'checked' : ''} class="status-check hidden">
+                                <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
+                                    <span class="text-[9px] font-black uppercase ${getStatusColor(status)}">${status}</span>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
+
+                    <input type="text" id="note-${cat.id}" placeholder="Добавить комментарий..." class="text-[12px]">
+                </div>
+            `).join('');
+        }
+
+        function getStatusColor(status) {
+            if (status === 'OK') return 'text-green-500';
+            if (status === 'WARN') return 'text-yellow-500';
+            return 'text-red-500';
+        }
+
+        async function sendFullReport() {
+            tg.MainButton.setText("ОТПРАВКА...").show();
+            
+            const reports = CATEGORIES.map(cat => ({
+                category: cat.name,
+                status: document.querySelector(`input[name="status-${cat.id}"]:checked`).value,
+                note: document.getElementById(`note-${cat.id}`).value
+            }));
+
+            const payload = {
+                user_id: USER_INFO.user_id,
+                complex_id: USER_INFO.complex_id,
+                reports: reports,
+                global_note: document.getElementById('global-note').value,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(API_CHECKLIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    tg.MainButton.setText("ОТЧЕТ ОТПРАВЛЕН").setParams({ color: "#22c55e" });
+                    setTimeout(() => goBack(), 1500);
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                tg.showAlert("Ошибка при отправке отчета.");
+                tg.MainButton.hide();
+            }
+        }
+
+        function goBack() {
+            // Возвращаемся на главную, передавая параметры обратно
+            window.location.href = `index.html?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`;
+        }
+
+        init();
+    </script>
+</body>
+</html>
