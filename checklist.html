@@ -33,6 +33,16 @@
             background: #0088cc;
             box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
         }
+        /* Анимация загрузки */
+        .loader {
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #0088cc;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="p-6 pb-12">
@@ -43,29 +53,38 @@
             <span class="text-xl">←</span>
         </button>
         <h1 class="text-lg font-bold italic">Technical Checklist</h1>
-        <div class="w-10"></div> <!-- Spacer -->
+        <div class="w-10"></div>
     </div>
 
-    <div id="checklist-container" class="space-y-6">
+    <!-- Индикатор загрузки -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
+        <div class="loader"></div>
+        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка категорий...</p>
+    </div>
+
+    <div id="checklist-container" class="space-y-6 hidden">
         <!-- Сюда скрипт вставит карточки категорий -->
     </div>
 
-    <!-- Общий комментарий -->
-    <div class="glass-card p-6 mt-6">
-        <p class="text-[10px] text-slate-500 mb-3 uppercase font-black tracking-widest">Общее примечание</p>
-        <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему объекту..."></textarea>
-    </div>
+    <!-- Общий комментарий (скрыт до загрузки) -->
+    <div id="footer-section" class="hidden">
+        <div class="glass-card p-6 mt-6">
+            <p class="text-[10px] text-slate-500 mb-3 uppercase font-black tracking-widest">Общее примечание</p>
+            <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему объекту..."></textarea>
+        </div>
 
-    <!-- Кнопка отправки -->
-    <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
-        Отправить отчет
-    </button>
+        <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
+            Отправить отчет
+        </button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const API_CHECKLIST = "https://sinuate-inez-proempire.ngrok-free.dev/api/submit_checklist";
+        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
+        const API_GET_CONFIG = `${API_BASE}/api/data`; // Используем тот же эндпоинт, где лежат сервисы
+        const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
         const urlParams = new URLSearchParams(window.location.search);
         const USER_INFO = {
@@ -73,36 +92,63 @@
             complex_id: urlParams.get('complex_id')
         };
 
-        const CATEGORIES = [
-            { id: 'elec', name: 'Электрика и освещение' },
-            { id: 'water', name: 'Водоснабжение и канализация' },
-            { id: 'hvac', name: 'Вентиляция и кондиционирование' },
-            { id: 'fire', name: 'Пожарная безопасность' },
-            { id: 'lift', name: 'Лифтовое оборудование' },
-            { id: 'pool', name: 'Бассейн / SPA зона' },
-            { id: 'common', name: 'Места общего пользования' }
-        ];
+        let loadedCategories = [];
 
-        function init() {
+        async function init() {
+            try {
+                // Тянем данные, чтобы получить актуальный список "services" (категорий) из таблицы
+                const response = await fetch(`${API_GET_CONFIG}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await response.json();
+                
+                // Берем список категорий из data.services
+                // Если в таблице это выпадающий список, API должен отдавать его в этом поле
+                loadedCategories = data.services || [];
+
+                if (loadedCategories.length === 0) {
+                    throw new Error("Категории не найдены");
+                }
+
+                renderChecklist(loadedCategories);
+            } catch (err) {
+                console.error("Load error:", err);
+                document.getElementById('loading-state').innerHTML = `
+                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest">Ошибка загрузки данных</p>
+                `;
+            }
+        }
+
+        function renderChecklist(categories) {
             const container = document.getElementById('checklist-container');
-            container.innerHTML = CATEGORIES.map(cat => `
-                <div class="glass-card p-5">
-                    <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${cat.name}</p>
-                    
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        ${['OK', 'WARN', 'ERR'].map(status => `
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="status-${cat.id}" value="${status}" ${status === 'OK' ? 'checked' : ''} class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
-                                    <span class="text-[9px] font-black uppercase ${getStatusColor(status)}">${status}</span>
-                                </div>
-                            </label>
-                        `).join('')}
-                    </div>
+            
+            // Генерируем HTML на основе полученного массива строк
+            container.innerHTML = categories.map((catName, index) => {
+                const catId = `cat_${index}`; // создаем ID на лету
+                return `
+                    <div class="glass-card p-5">
+                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${catName}</p>
+                        
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            ${['OK', 'WARN', 'ERR'].map(status => `
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="status-${catId}" data-catname="${catName}" value="${status}" ${status === 'OK' ? 'checked' : ''} class="status-check hidden">
+                                    <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
+                                        <span class="text-[9px] font-black uppercase ${getStatusColor(status)}">${status}</span>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
 
-                    <input type="text" id="note-${cat.id}" placeholder="Добавить комментарий..." class="text-[12px]">
-                </div>
-            `).join('');
+                        <input type="text" id="note-${catId}" placeholder="Добавить комментарий..." class="text-[12px]">
+                    </div>
+                `;
+            }).join('');
+
+            // Переключаем видимость
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('checklist-container').classList.remove('hidden');
+            document.getElementById('footer-section').classList.remove('hidden');
         }
 
         function getStatusColor(status) {
@@ -114,11 +160,15 @@
         async function sendFullReport() {
             tg.MainButton.setText("ОТПРАВКА...").show();
             
-            const reports = CATEGORIES.map(cat => ({
-                category: cat.name,
-                status: document.querySelector(`input[name="status-${cat.id}"]:checked`).value,
-                note: document.getElementById(`note-${cat.id}`).value
-            }));
+            // Собираем данные на основе отрисованных категорий
+            const reports = loadedCategories.map((catName, index) => {
+                const catId = `cat_${index}`;
+                return {
+                    category: catName,
+                    status: document.querySelector(`input[name="status-${catId}"]:checked`).value,
+                    note: document.getElementById(`note-${catId}`).value
+                };
+            });
 
             const payload = {
                 user_id: USER_INFO.user_id,
@@ -129,7 +179,7 @@
             };
 
             try {
-                const response = await fetch(API_CHECKLIST, {
+                const response = await fetch(API_SUBMIT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -148,7 +198,6 @@
         }
 
         function goBack() {
-            // Возвращаемся на главную, передавая параметры обратно
             window.location.href = `index.html?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`;
         }
 
