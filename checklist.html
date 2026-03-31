@@ -94,14 +94,14 @@
 
         async function init() {
             try {
-                // Запрашиваем данные. Бэкенд должен вернуть массив из столбца Area_object в поле services
+                // Запрашиваем данные. 
                 const response = await fetch(`${API_DATA}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
-                // Фильтруем, чтобы убрать пустые значения из столбца
-                loadedCategories = (data.services || []).filter(item => item && item.trim() !== "");
+                // ИЗМЕНЕНИЕ: Теперь тянем данные из area_objects (столбец Area_object в Google Sheets)
+                loadedCategories = (data.area_objects || []).filter(item => item && item.trim() !== "");
 
                 if (loadedCategories.length === 0) {
                     throw new Error("Список объектов пуст");
@@ -111,7 +111,7 @@
             } catch (err) {
                 console.error("Load error:", err);
                 document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка: проверьте лист Services</p>
+                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка: проверьте столбец Area_object в листе Services</p>
                 `;
             }
         }
