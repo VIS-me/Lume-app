@@ -66,11 +66,7 @@
     </div>
 
     <div id="footer-section" class="hidden">
-        <div class="glass-card p-6 mt-6">
-            <p class="text-[10px] text-slate-500 mb-3 uppercase font-black tracking-widest">Общее примечание</p>
-            <textarea id="global-note" class="h-24" placeholder="Введите важные замечания по всему комплексу..."></textarea>
-        </div>
-
+        <!-- Блок общего примечания удален -->
         <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
             Отправить отчет
         </button>
@@ -94,13 +90,11 @@
 
         async function init() {
             try {
-                // Запрашиваем данные. 
                 const response = await fetch(`${API_DATA}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
-                // ИЗМЕНЕНИЕ: Теперь тянем данные из area_objects (столбец Area_object в Google Sheets)
                 loadedCategories = (data.area_objects || []).filter(item => item && item.trim() !== "");
 
                 if (loadedCategories.length === 0) {
@@ -166,7 +160,6 @@
                 user_id: USER_INFO.user_id,
                 complex_id: USER_INFO.complex_id,
                 reports: reports,
-                global_note: document.getElementById('global-note').value,
                 timestamp: new Date().toLocaleString('ru-RU')
             };
 
