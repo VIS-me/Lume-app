@@ -127,6 +127,7 @@
                     <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
                     <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
                     <button onclick="openModal('payment-reminders')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
+                    <button onclick="openModal('pdf-report-confirm')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">PDF Report</button>
                     <button id="engineer-btn" onclick="openChecklist()" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
             </div>
@@ -207,7 +208,8 @@
             update: `${API_BASE}/api/update_contacts`,
             order: `${API_BASE}/api/create_order`,
             broadcast: `${API_BASE}/api/broadcast`,
-            remind: `${API_BASE}/api/remind_payment`
+            remind: `${API_BASE}/api/remind_payment`,
+            report: `${API_BASE}/api/generate_report`
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -350,7 +352,16 @@
             apiRequest(ENDPOINTS.remind, { debtors }, "Reminders Sent!");
         };
 
-        // NEW: Function to open checklist page
+        const sendPdfReport = () => {
+            const debtors = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
+            if (!debtors.length) return tg.showAlert("No debtors to include in report.");
+            
+            apiRequest(ENDPOINTS.report, { 
+                debtors: debtors,
+                recipients: ['director', 'engineer'] 
+            }, "Report Sent!");
+        };
+
         function openChecklist() {
             const url = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
             window.location.href = url;
@@ -384,6 +395,12 @@
                     <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0.</p>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."</div>
                     <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
+            }
+            else if (type === 'pdf-report-confirm') {
+                html = `
+                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">PDF Report</h2>
+                    <p class="text-[11px] text-slate-300 mb-6">Generate a PDF report of current debtors and send it to the Director and Engineers.</p>
+                    <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Generate & Send PDF</button>`;
             }
             else if (type === 'debtors') {
                 html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
