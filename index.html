@@ -371,97 +371,99 @@
             const body = document.getElementById('modal-body');
             let html = "";
 
-            if (type === 'create-order') {
-                const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
-                const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : String(cachedData?.apt || "").split(',')[0].trim();
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
-                    <div class="space-y-4">
-                        <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p><select id="order-cat" class="text-sm">${servicesHtml}</select></div>
-                        <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p><input type="text" id="order-apt" class="text-sm" value="${currentApt}"></div>
-                        <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p><textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea></div>
-                        <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
-                    </div>`;
-            }
-            else if (type === 'notifications') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
-                    <textarea id="broadcast-msg" class="text-sm h-40 mb-4" placeholder="Type your notification here..."></textarea>
-                    <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>`;
-            }
-            else if (type === 'payment-reminders') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
-                    <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0.</p>
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."</div>
-                    <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
-            }
-            else if (type === 'pdf-report-confirm') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic text-blue-400">PDF Report</h2>
-                    <p class="text-[11px] text-slate-300 mb-6">Generate a PDF report of current debtors and send it to the Director and Engineers.</p>
-                    <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Generate & Send PDF</button>`;
-            }
-            else if (type === 'debtors') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
-                const filtered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
-                if (!filtered.length) {
-                    html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
-                } else {
-                    filtered.forEach(d => {
+            switch(type) {
+                case 'create-order':
+                    const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
+                    const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : String(cachedData?.apt || "").split(',')[0].trim();
+                    html = `
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
+                        <div class="space-y-4">
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p><select id="order-cat" class="text-sm">${servicesHtml}</select></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p><input type="text" id="order-apt" class="text-sm" value="${currentApt}"></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p><textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea></div>
+                            <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
+                        </div>`;
+                    break;
+                case 'notifications':
+                    html = `
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
+                        <textarea id="broadcast-msg" class="text-sm h-40 mb-4" placeholder="Type your notification here..."></textarea>
+                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>`;
+                    break;
+                case 'payment-reminders':
+                    html = `
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0.</p>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."</div>
+                        <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
+                    break;
+                case 'pdf-report-confirm':
+                    html = `
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">PDF Report</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">Generate a PDF report of current debtors and send it to the Director and Engineers.</p>
+                        <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Generate & Send PDF</button>`;
+                    break;
+                case 'debtors':
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
+                    const debtFiltered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
+                    if (!debtFiltered.length) {
+                        html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
+                    } else {
+                        debtFiltered.forEach(d => {
+                            html += `
+                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <div class="flex flex-col"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p><span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span></div>
+                                <div class="text-right"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p><span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span></div>
+                            </div>`;
+                        });
+                    }
+                    html += `</div>`;
+                    break;
+                case 'in-progress':
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
+                    break;
+                case 'emergency':
+                    html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
+                    cachedData?.emergency?.forEach(e => {
                         html += `
-                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div class="flex flex-col"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p><span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span></div>
-                            <div class="text-right"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p><span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span></div>
-                        </div>`;
+                            <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
+                                <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
+                                <a href="tel:${String(e.Phone).replace(/\s/g, '')}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase active:bg-red-600">${e.Phone}</a>
+                            </div>`;
                     });
-                }
-                html += `</div>`;
-            }
-            else if (type === 'in-progress') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
-            }
-            else if (type === 'emergency') {
-                html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
-                cachedData?.emergency?.forEach(e => {
-                    html += `
-                        <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
-                            <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                            <a href="tel:${String(e.Phone).replace(/\s/g, '')}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase active:bg-red-600">${e.Phone}</a>
-                        </div>`;
-                });
-            } 
-            else if (type === 'uk') {
-                html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
-                cachedData?.management?.forEach(m => {
-                    const val = String(m.Value || "").trim();
-                    const valL = val.toLowerCase();
-                    const isEmail = valL.includes('@'), isPhone = /^\+?\d/.test(valL);
-                    const url = isEmail ? `mailto:${val}` : (isPhone ? `tel:${val.replace(/\s/g, '')}` : `https://t.me/${val.replace('@','')}`);
-                    const btnTxt = isEmail ? 'Email' : (isPhone ? 'Call' : 'Chat');
-                    const btnCol = isEmail ? 'bg-slate-600' : (isPhone ? 'bg-green-600' : 'bg-[#0088cc]');
+                    break;
+                case 'uk':
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
+                    cachedData?.management?.forEach(m => {
+                        const val = String(m.Value || "").trim();
+                        const valL = val.toLowerCase();
+                        const isEmail = valL.includes('@'), isPhone = /^\+?\d/.test(valL);
+                        const url = isEmail ? `mailto:${val}` : (isPhone ? `tel:${val.replace(/\s/g, '')}` : `https://t.me/${val.replace('@','')}`);
+                        const btnTxt = isEmail ? 'Email' : (isPhone ? 'Call' : 'Chat');
+                        const btnCol = isEmail ? 'bg-slate-600' : (isPhone ? 'bg-green-600' : 'bg-[#0088cc]');
 
-                    html += `
-                        <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
-                            <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm text-white">${val}</span></div>
-                            <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
-                        </div>`;
-                });
-            }
-            else if (type === 'support') {
-                html = `
-                    <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
-                    <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="action-btn-secondary">
-                        <span class="btn-label-base text-slate-300">Privacy Policy</span>
-                        <span class="text-slate-500">📄</span>
-                    </button>`;
-            }
-            else if (type === 'edit-profile') {
-                html = `
-                    <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
-                    <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
-                    <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
-                    <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
+                        html += `
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
+                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm text-white">${val}</span></div>
+                                <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
+                            </div>`;
+                    });
+                    break;
+                case 'support':
+                    html = `
+                        <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
+                        <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="action-btn-secondary">
+                            <span class="btn-label-base text-slate-300">Privacy Policy</span>
+                            <span class="text-slate-500">📄</span>
+                        </button>`;
+                    break;
+                case 'edit-profile':
+                    html = `
+                        <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
+                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
+                    break;
             }
 
             body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
