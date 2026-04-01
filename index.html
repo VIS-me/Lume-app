@@ -209,7 +209,7 @@
             order: `${API_BASE}/api/create_order`,
             broadcast: `${API_BASE}/api/broadcast`,
             remind: `${API_BASE}/api/remind_payment`,
-            report: `${API_BASE}/api/generate_report`
+            report: `${API_BASE}/api/send_pdf_report`
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -351,17 +351,11 @@
             if (!debtors.length) return tg.showAlert("No debtors to notify.");
             apiRequest(ENDPOINTS.remind, { debtors }, "Reminders Sent!");
         };
-
         const sendPdfReport = () => {
-            const debtors = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
-            if (!debtors.length) return tg.showAlert("No debtors to include in report.");
-            
-            apiRequest(ENDPOINTS.report, { 
-                debtors: debtors,
-                recipients: ['director', 'engineer'] 
-            }, "Report Sent!");
+        // Просто вызываем эндпоинт, сервер сам сформирует PDF по актуальным данным из Google Sheets
+            apiRequest(ENDPOINTS.report, {}, "PDF Sent to Bot!");
         };
-
+        
         function openChecklist() {
             const url = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
             window.location.href = url;
