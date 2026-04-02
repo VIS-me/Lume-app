@@ -6,6 +6,7 @@
     <title>Lume App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="translations.js"></script>
     <style>
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
@@ -75,16 +76,16 @@
 
         <div id="page-home" class="page active">
             <div class="glass-card p-8 mb-6">
-                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
+                <p id="t-welcome" class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
                 <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
                 <div class="flex justify-between items-end">
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
+                            <p id="t-hum" class="text-[8px] text-slate-500 uppercase font-black mb-1">Hum</p>
                             <p id="humidity" class="text-lg font-bold">--%</p>
                         </div>
                         <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
+                            <p id="t-wind" class="text-[8px] text-slate-500 uppercase font-black mb-1">Wind</p>
                             <p id="wind" class="text-lg font-bold">--</p>
                         </div>
                     </div>
@@ -96,15 +97,15 @@
 
             <div class="glass-card p-6 space-y-3 mb-6">
                 <button onclick="openModal('emergency')" class="action-btn-secondary bg-red-500/5 border-red-500/10">
-                    <span class="btn-label-base text-red-500">Emergency</span>
+                    <span id="t-emergency" class="btn-label-base text-red-500">Emergency</span>
                     <span class="text-red-500/20 text-xs">🚨</span>
                 </button>
                 <button onclick="openModal('uk')" class="action-btn-secondary">
-                    <span class="btn-label-base text-slate-300">Management</span>
+                    <span id="t-management" class="btn-label-base text-slate-300">Management</span>
                     <span class="text-slate-600 text-xs">🏢</span>
                 </button>
                 <button onclick="openModal('support')" class="action-btn-secondary">
-                    <span class="btn-label-base text-slate-300">Support</span>
+                    <span id="t-support" class="btn-label-base text-slate-300">Support</span>
                     <span class="text-slate-600 text-xs">✉️</span>
                 </button>
             </div>
@@ -113,17 +114,17 @@
         <div id="page-tasks" class="page">
             <div class="glass-card p-6 space-y-4">
                 <button onclick="openModal('create-order')" class="w-full py-3 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-blue-600/20">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
+                    <span id="t-create-request" class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
                 </button>
 
                 <button onclick="openModal('in-progress')" class="w-full py-3 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-white/10">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
+                    <span id="t-in-progress" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">In Progress</span>
                 </button>
 
                 <div id="admin-block" class="hidden mt-4 space-y-3">
-                    <button onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
-                    <button onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
-                    <button onclick="openModal('payment-reminders')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
+                    <button id="t-notification" onclick="openModal('notifications')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Notification</button>
+                    <button id="t-debtors-list" onclick="openModal('debtors')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Debtors List</button>
+                    <button id="t-payment-reminder" onclick="openModal('payment-reminders')" class="w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Payment reminder</button>
                     <button id="pdf-report-btn" onclick="openModal('pdf-report-confirm')" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">PDF Report</button>
                     <button id="engineer-btn" onclick="openChecklist()" class="hidden w-full glass-card p-3 border-blue-500/20 text-[10px] font-black uppercase text-blue-400 italic active:bg-blue-500/5">Checklist</button>
                 </div>
@@ -137,30 +138,30 @@
                     <div>
                         <h3 id="profile-name" class="text-xl font-bold italic tracking-tight">--</h3>
                         <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-1">--</p>
-                        <p class="text-[10px] text-slate-500 mt-2 font-mono">Апартамент: <span id="apt-numbers">--</span></p>
+                        <p class="text-[10px] text-slate-500 mt-2 font-mono"><span id="t-apartment-label">Апартамент</span>: <span id="apt-numbers">--</span></p>
                     </div>
                 </div>
-                <button onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
+                <button id="t-edit-btn" onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-slate-400 border border-white/5 active:bg-white/10">Изменить</button>
             </div>
 
             <div class="glass-card p-8">
-                <h4 class="text-xl font-bold italic mb-6">К оплате на <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
+                <h4 class="text-xl font-bold italic mb-6"><span id="t-to-pay">К оплате на</span> <span id="payment-date" class="text-slate-400 text-sm font-medium">--</span></h4>
                 <div class="space-y-1">
                     <div class="flex justify-between finance-item">
-                        <span class="text-xs text-slate-500 font-medium">всего</span>
+                        <span id="t-total" class="text-xs text-slate-500 font-medium">всего</span>
                         <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
                     </div>
                     <div id="finance-details" class="space-y-1">
                         <div class="flex justify-between finance-item text-slate-300">
-                            <span class="text-xs font-medium">содержание</span>
+                            <span id="t-maintenance" class="text-xs font-medium">содержание</span>
                             <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
                         </div>
                         <div class="flex justify-between finance-item text-slate-300">
-                            <span class="text-xs font-medium">горячая вода</span>
+                            <span id="t-hot-water" class="text-xs font-medium">горячая вода</span>
                             <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
                         </div>
                         <div class="flex justify-between finance-item text-slate-300">
-                            <span class="text-xs font-medium">гараж</span>
+                            <span id="t-garage" class="text-xs font-medium">гараж</span>
                             <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
                         </div>
                     </div>
@@ -172,22 +173,22 @@
     <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
         <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
             <div id="modal-body" class="max-h-[60vh] overflow-y-auto"></div>
-            <button onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500 active:bg-white/10">Close</button>
+            <button id="t-close" onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500 active:bg-white/10">Close</button>
         </div>
     </div>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-[#0f111a]/80 backdrop-blur-xl border-t border-white/5 px-12 py-7 flex justify-between items-center z-50">
         <button onclick="switchPage('home')" id="nav-home" class="nav-btn active flex flex-col items-center">
             <span class="text-2xl">🏠</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Home</span>
+            <span id="t-home-nav" class="text-[8px] mt-1 font-black uppercase">Home</span>
         </button>
         <button onclick="switchPage('tasks')" id="nav-tasks" class="nav-btn flex flex-col items-center">
             <span class="text-2xl">📋</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Tasks</span>
+            <span id="t-tasks-nav" class="text-[8px] mt-1 font-black uppercase">Tasks</span>
         </button>
         <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn flex flex-col items-center">
             <span class="text-2xl">👤</span>
-            <span class="text-[8px] mt-1 font-black uppercase">Profile</span>
+            <span id="t-profile-nav" class="text-[8px] mt-1 font-black uppercase">Profile</span>
         </button>
     </nav>
 
@@ -196,6 +197,45 @@
         tg.expand();
         tg.ready();
 
+        // --- MULTILINGUAL LOGIC ---
+        const userLang = tg.initDataUnsafe?.user?.language_code || 'en';
+        const lang = translations[userLang] ? userLang : 'en';
+
+        function t(key) {
+            return translations[lang][key] || translations['en'][key] || key;
+        }
+
+        function applyStaticTranslations() {
+            document.getElementById('t-welcome').innerText = t('welcome');
+            document.getElementById('t-hum').innerText = t('hum');
+            document.getElementById('t-wind').innerText = t('wind');
+            document.getElementById('t-emergency').innerText = t('emergency');
+            document.getElementById('t-management').innerText = t('management');
+            document.getElementById('t-support').innerText = t('support');
+            document.getElementById('t-create-request').innerText = t('create_request');
+            document.getElementById('t-in-progress').innerText = t('in_progress');
+            document.getElementById('t-notification').innerText = t('notification');
+            document.getElementById('t-debtors-list').innerText = t('debtors_list');
+            document.getElementById('t-payment-reminder').innerText = t('payment_reminder');
+            document.getElementById('pdf-report-btn').innerText = t('pdf_report');
+            document.getElementById('engineer-btn').innerText = t('checklist');
+            document.getElementById('t-edit-btn').innerText = t('edit');
+            document.getElementById('t-apartment-label').innerText = t('apartment');
+            document.getElementById('t-to-pay').innerText = t('to_pay');
+            document.getElementById('t-total').innerText = t('total');
+            document.getElementById('t-maintenance').innerText = t('maintenance');
+            document.getElementById('t-hot-water').innerText = t('hot_water');
+            document.getElementById('t-garage').innerText = t('garage');
+            document.getElementById('t-close').innerText = t('close');
+            document.getElementById('t-home-nav').innerText = t('home_nav');
+            document.getElementById('t-tasks-nav').innerText = t('tasks_nav');
+            document.getElementById('t-profile-nav').innerText = t('profile_nav');
+            
+            const status = document.getElementById('status-label');
+            status.innerText = t('status_live');
+        }
+
+        // --- APP LOGIC ---
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
         const ENDPOINTS = {
             data: `${API_BASE}/api/data`,
@@ -221,6 +261,8 @@
         }
 
         async function loadData() {
+            applyStaticTranslations();
+
             if(tg.initDataUnsafe?.user?.photo_url) {
                 document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
             }
@@ -261,8 +303,6 @@
 
                 if (isStaff) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
-                    
-                    // Показываем кнопки "PDF Report" и "Checklist" только инженерам
                     const isEngineer = roleLower.includes('engineer');
                     document.getElementById('engineer-btn')?.classList.toggle('hidden', !isEngineer);
                     document.getElementById('pdf-report-btn')?.classList.toggle('hidden', !isEngineer);
@@ -271,21 +311,21 @@
             } catch (err) { 
                 console.error("Data loading error:", err);
                 const status = document.getElementById('status-label');
-                status.innerText = "Offline Mode";
+                status.innerText = t('status_offline');
                 status.classList.replace('text-blue-500/50', 'text-red-500/50');
             }
         }
 
         function getTasksHtml() {
             const orders = cachedData?.active_orders;
-            if (!orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No requests found</p>`;
+            if (!orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">${t('no_requests')}</p>`;
 
             const filtered = orders.filter(o => {
                 const s = String(o.status || "").toLowerCase();
                 return isStaff ? !['done', 'выполнено', 'отменено', 'cancelled'].includes(s) : true;
             });
 
-            if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">No active requests</p>`;
+            if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">${t('no_active')}</p>`;
 
             return filtered.map(o => {
                 const sVal = String(o.status || "").toLowerCase();
@@ -295,7 +335,7 @@
                 return `
                     <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
                         <div class="flex flex-col flex-1 mr-2">
-                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">Apt: ${o.apt || '??'}</span>` : ''}
+                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
                             <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
                             <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
                         </div>
@@ -305,7 +345,7 @@
         }
 
         async function apiRequest(endpoint, body, successMsg) {
-            tg.MainButton.setText("Processing...").show();
+            tg.MainButton.setText(t('processing')).show();
             try {
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -322,36 +362,36 @@
                 }
             } catch (err) {
                 tg.MainButton.hide();
-                tg.showAlert("Connection error.");
+                tg.showAlert(t('error_conn'));
             }
         }
 
         const sendOrder = () => {
             const description = document.getElementById('order-desc').value;
             const apartment = document.getElementById('order-apt').value;
-            if(!description.trim() || !apartment.trim()) return tg.showAlert("Please fill all fields");
+            if(!description.trim() || !apartment.trim()) return tg.showAlert(t('error_fields'));
             
             apiRequest(ENDPOINTS.order, {
                 category: document.getElementById('order-cat').value,
                 description,
                 apt: apartment
-            }, "Order Sent!");
+            }, t('order_sent'));
         };
 
         const sendBroadcast = () => {
             const message = document.getElementById('broadcast-msg').value;
-            if(!message.trim()) return tg.showAlert("Please enter a message");
-            apiRequest(ENDPOINTS.broadcast, { message }, "Sent Successfully!");
+            if(!message.trim()) return tg.showAlert(t('error_fields'));
+            apiRequest(ENDPOINTS.broadcast, { message }, t('success'));
         };
 
         const sendPaymentReminders = () => {
             const debtors = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
-            if (!debtors.length) return tg.showAlert("No debtors to notify.");
-            apiRequest(ENDPOINTS.remind, { debtors }, "Reminders Sent!");
+            if (!debtors.length) return tg.showAlert(t('no_debtors'));
+            apiRequest(ENDPOINTS.remind, { debtors }, t('success'));
         };
         
         const sendPdfReport = () => {
-            apiRequest(ENDPOINTS.report, {}, "PDF Sent to Bot!");
+            apiRequest(ENDPOINTS.report, {}, t('success'));
         };
         
         function openChecklist() {
@@ -368,54 +408,54 @@
                     const servicesHtml = cachedData?.services?.map(s => `<option value="${s}">${s}</option>`).join('') || `<option value="Other">Other</option>`;
                     const currentApt = Array.isArray(cachedData?.apt) ? cachedData.apt[0] : String(cachedData?.apt || "").split(',')[0].trim();
                     html = `
-                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">New Request</h2>
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('new_request_title')}</h2>
                         <div class="space-y-4">
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Category</p><select id="order-cat" class="text-sm">${servicesHtml}</select></div>
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Apartment / Object</p><input type="text" id="order-apt" class="text-sm" value="${currentApt}"></div>
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Description</p><textarea id="order-desc" class="text-sm h-32" placeholder="What needs to be fixed?"></textarea></div>
-                            <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">Send Request</button>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('category')}</p><select id="order-cat" class="text-sm">${servicesHtml}</select></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('object')}</p><input type="text" id="order-apt" class="text-sm" value="${currentApt}"></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('description')}</p><textarea id="order-desc" class="text-sm h-32" placeholder="${t('desc_placeholder')}"></textarea></div>
+                            <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">${t('send_request')}</button>
                         </div>`;
                     break;
                 case 'notifications':
                     html = `
-                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">System Notification</h2>
-                        <textarea id="broadcast-msg" class="text-sm h-40 mb-4" placeholder="Type your notification here..."></textarea>
-                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send to All</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('system_notif')}</h2>
+                        <textarea id="broadcast-msg" class="text-sm h-40 mb-4" placeholder="${t('notif_placeholder')}"></textarea>
+                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('send_all')}</button>`;
                     break;
                 case 'payment-reminders':
                     html = `
-                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">Payment Reminder</h2>
-                        <p class="text-[11px] text-slate-300 mb-6">Confirm sending debt reminders to all residents with balance > 0.</p>
-                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"Уважаемый собственник! У вас образовалась задолженность. Пожалуйста срочно оплатите."</div>
-                        <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Send Reminders</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('pay_remind_title')}</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">${t('pay_remind_desc')}</p>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"${t('pay_remind_template')}"</div>
+                        <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('send_reminders')}</button>`;
                     break;
                 case 'pdf-report-confirm':
                     html = `
-                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">PDF Report</h2>
-                        <p class="text-[11px] text-slate-300 mb-6">Generate a PDF report of current debtors and send it to the Director and Engineers.</p>
-                        <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">Generate & Send PDF</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('pdf_title')}</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">${t('pdf_desc')}</p>
+                        <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('gen_send')}</button>`;
                     break;
                 case 'debtors':
-                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Debtors List</h2><div class="space-y-2">`;
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('debtors_list')}</h2><div class="space-y-2">`;
                     const debtFiltered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
                     if (!debtFiltered.length) {
-                        html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">No Debtors Found</p>`;
+                        html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">${t('no_debtors')}</p>`;
                     } else {
                         debtFiltered.forEach(d => {
                             html += `
                             <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                                <div class="flex flex-col"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Apartment</p><span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span></div>
-                                <div class="text-right"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">Total Debt</p><span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span></div>
+                                <div class="flex flex-col"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">${t('apartment')}</p><span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span></div>
+                                <div class="text-right"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">${t('total')}</p><span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span></div>
                             </div>`;
                         });
                     }
                     html += `</div>`;
                     break;
                 case 'in-progress':
-                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Active Requests</h2><div class="space-y-1">${getTasksHtml()}</div>`;
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('in_progress')}</h2><div class="space-y-1">${getTasksHtml()}</div>`;
                     break;
                 case 'emergency':
-                    html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">Emergency</h2>`;
+                    html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">${t('emergency')}</h2>`;
                     cachedData?.emergency?.forEach(e => {
                         html += `
                             <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
@@ -425,7 +465,7 @@
                     });
                     break;
                 case 'uk':
-                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Management Contacts</h2>`;
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('management')}</h2>`;
                     cachedData?.management?.forEach(m => {
                         const val = String(m.Value || "").trim();
                         const valL = val.toLowerCase();
@@ -443,7 +483,7 @@
                     break;
                 case 'support':
                     html = `
-                        <h2 class="text-xl font-bold mb-8 italic text-blue-400">Support</h2>
+                        <h2 class="text-xl font-bold mb-8 italic text-blue-400">${t('support')}</h2>
                         <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="action-btn-secondary">
                             <span class="btn-label-base text-slate-300">Privacy Policy</span>
                             <span class="text-slate-500">📄</span>
@@ -451,10 +491,10 @@
                     break;
                 case 'edit-profile':
                     html = `
-                        <h2 class="text-xl font-bold mb-6 italic">Edit Profile</h2>
+                        <h2 class="text-xl font-bold mb-6 italic">${t('edit_profile')}</h2>
                         <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
                         <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
-                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">Save Changes</button>`;
+                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">${t('save_changes')}</button>`;
                     break;
             }
 
@@ -466,7 +506,7 @@
             apiRequest(ENDPOINTS.update, {
                 whatsapp: document.getElementById('whatsapp-input').value,
                 email: document.getElementById('email-input').value
-            }, "Success!");
+            }, t('success'));
         };
 
         function closeModal() { 
