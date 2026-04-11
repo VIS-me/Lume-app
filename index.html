@@ -199,33 +199,40 @@
 
         // --- MULTILINGUAL LOGIC ---
         const userLang = tg.initDataUnsafe?.user?.language_code || 'en';
-        const lang = (typeof translations !== 'undefined' && translations[userLang]) ? userLang : 'en';
+        const lang = translations[userLang] ? userLang : 'en';
 
         function t(key) {
-            if (typeof translations === 'undefined') return key;
             return translations[lang][key] || translations['en'][key] || key;
         }
 
         function applyStaticTranslations() {
-            const map = {
-                't-welcome': 'welcome', 't-hum': 'hum', 't-wind': 'wind',
-                't-emergency': 'emergency', 't-management': 'management', 't-support': 'support',
-                't-create-request': 'create_request', 't-in-progress': 'in_progress',
-                't-notification': 'notification', 't-debtors-list': 'debtors_list',
-                't-payment-reminder': 'payment_reminder', 'pdf-report-btn': 'pdf_report',
-                'engineer-btn': 'checklist', 't-edit-btn': 'edit', 't-apartment-label': 'apartment',
-                't-to-pay': 'to_pay', 't-total': 'total', 't-maintenance': 'maintenance',
-                't-hot-water': 'hot_water', 't-garage': 'garage', 't-close': 'close',
-                't-home-nav': 'home_nav', 't-tasks-nav': 'tasks_nav', 't-profile-nav': 'profile_nav'
-            };
-            
-            for (const [id, key] of Object.entries(map)) {
-                const el = document.getElementById(id);
-                if (el) el.innerText = t(key);
-            }
+            document.getElementById('t-welcome').innerText = t('welcome');
+            document.getElementById('t-hum').innerText = t('hum');
+            document.getElementById('t-wind').innerText = t('wind');
+            document.getElementById('t-emergency').innerText = t('emergency');
+            document.getElementById('t-management').innerText = t('management');
+            document.getElementById('t-support').innerText = t('support');
+            document.getElementById('t-create-request').innerText = t('create_request');
+            document.getElementById('t-in-progress').innerText = t('in_progress');
+            document.getElementById('t-notification').innerText = t('notification');
+            document.getElementById('t-debtors-list').innerText = t('debtors_list');
+            document.getElementById('t-payment-reminder').innerText = t('payment_reminder');
+            document.getElementById('pdf-report-btn').innerText = t('pdf_report');
+            document.getElementById('engineer-btn').innerText = t('checklist');
+            document.getElementById('t-edit-btn').innerText = t('edit');
+            document.getElementById('t-apartment-label').innerText = t('apartment');
+            document.getElementById('t-to-pay').innerText = t('to_pay');
+            document.getElementById('t-total').innerText = t('total');
+            document.getElementById('t-maintenance').innerText = t('maintenance');
+            document.getElementById('t-hot-water').innerText = t('hot_water');
+            document.getElementById('t-garage').innerText = t('garage');
+            document.getElementById('t-close').innerText = t('close');
+            document.getElementById('t-home-nav').innerText = t('home_nav');
+            document.getElementById('t-tasks-nav').innerText = t('tasks_nav');
+            document.getElementById('t-profile-nav').innerText = t('profile_nav');
             
             const status = document.getElementById('status-label');
-            if (status) status.innerText = t('status_live');
+            status.innerText = t('status_live');
         }
 
         // --- APP LOGIC ---
@@ -257,12 +264,9 @@
             applyStaticTranslations();
 
             if(tg.initDataUnsafe?.user?.photo_url) {
-                const avatar = document.getElementById('profile-avatar');
-                if(avatar) avatar.src = tg.initDataUnsafe.user.photo_url;
+                document.getElementById('profile-avatar').src = tg.initDataUnsafe.user.photo_url;
             }
-            
-            const nameEl = document.getElementById('profile-name');
-            if(nameEl) nameEl.innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
+            document.getElementById('profile-name').innerText = tg.initDataUnsafe?.user?.first_name || 'Resident';
 
             try {
                 const response = await fetch(`${ENDPOINTS.data}?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`, {
@@ -274,8 +278,7 @@
                 const roleLower = (data.role || "").toLowerCase();
                 isStaff = ['engineer', 'director', 'administrator', 'staff'].some(r => roleLower.includes(r));
 
-                const complexEl = document.getElementById('complex-display-name');
-                if(complexEl) complexEl.innerText = data.complex_name || "--";
+                document.getElementById('complex-display-name').innerText = data.complex_name || "--";
 
                 if (data.weather) {
                     const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
@@ -284,14 +287,11 @@
                     document.getElementById('wind').innerText = `${data.weather.wind || "0"} m/s`;
                 }
                 
-                const aptEl = document.getElementById('apt-numbers');
-                if(aptEl) aptEl.innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
-                
-                const roleEl = document.getElementById('profile-role');
-                if(roleEl) roleEl.innerText = data.role || "--";
+                document.getElementById('apt-numbers').innerText = Array.isArray(data.apt) ? data.apt.join(', ') : (data.apt || "--");
+                document.getElementById('profile-role').innerText = data.role || "--";
 
                 if (data.finance) {
-                    const f = data.finance;
+                    const { finance: f } = data;
                     const cur = f.currency || "€";
                     document.querySelectorAll('.currency-label').forEach(el => el.innerText = cur);
                     document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
@@ -302,24 +302,17 @@
                 }
 
                 if (isStaff) {
-                    const adminBlock = document.getElementById('admin-block');
-                    if(adminBlock) adminBlock.classList.remove('hidden');
-                    
+                    document.getElementById('admin-block')?.classList.remove('hidden');
                     const isEngineer = roleLower.includes('engineer');
-                    const engBtn = document.getElementById('engineer-btn');
-                    const pdfBtn = document.getElementById('pdf-report-btn');
-                    
-                    if(engBtn) engBtn.classList.toggle('hidden', !isEngineer);
-                    if(pdfBtn) pdfBtn.classList.toggle('hidden', !isEngineer);
+                    document.getElementById('engineer-btn')?.classList.toggle('hidden', !isEngineer);
+                    document.getElementById('pdf-report-btn')?.classList.toggle('hidden', !isEngineer);
                 }
 
             } catch (err) { 
                 console.error("Data loading error:", err);
                 const status = document.getElementById('status-label');
-                if(status) {
-                    status.innerText = t('status_offline');
-                    status.classList.replace('text-blue-500/50', 'text-red-500/50');
-                }
+                status.innerText = t('status_offline');
+                status.classList.replace('text-blue-500/50', 'text-red-500/50');
             }
         }
 
@@ -352,7 +345,7 @@
         }
 
         async function apiRequest(endpoint, body, successMsg) {
-            try { tg.MainButton.setText(t('processing')).show(); } catch(e){}
+            tg.MainButton.setText(t('processing')).show();
             try {
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -361,44 +354,33 @@
                 });
 
                 if (response.ok) {
-                    try { tg.MainButton.setText(successMsg).show(); } catch(e){}
+                    tg.MainButton.setText(successMsg).show();
                     setTimeout(() => { closeModal(); loadData(); }, 1500);
                 } else {
                     tg.showAlert("Action failed.");
-                    try { tg.MainButton.hide(); } catch(e){}
+                    tg.MainButton.hide();
                 }
             } catch (err) {
-                try { tg.MainButton.hide(); } catch(e){}
+                tg.MainButton.hide();
                 tg.showAlert(t('error_conn'));
             }
         }
 
         const sendOrder = () => {
-            const descEl = document.getElementById('order-desc');
-            const aptEl = document.getElementById('order-apt');
-            const catEl = document.getElementById('order-cat');
-            
-            if(!descEl || !aptEl || !catEl) return;
-            
-            const description = descEl.value;
-            const apartment = aptEl.value;
-            
+            const description = document.getElementById('order-desc').value;
+            const apartment = document.getElementById('order-apt').value;
             if(!description.trim() || !apartment.trim()) return tg.showAlert(t('error_fields'));
             
             apiRequest(ENDPOINTS.order, {
-                category: catEl.value,
+                category: document.getElementById('order-cat').value,
                 description,
                 apt: apartment
             }, t('order_sent'));
         };
 
         const sendBroadcast = () => {
-            const msgEl = document.getElementById('broadcast-msg');
-            if(!msgEl) return;
-            
-            const message = msgEl.value;
+            const message = document.getElementById('broadcast-msg').value;
             if(!message.trim()) return tg.showAlert(t('error_fields'));
-            
             apiRequest(ENDPOINTS.broadcast, { message }, t('success'));
         };
 
@@ -413,13 +395,12 @@
         };
         
         function openChecklist() {
-            window.location.href = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
+            const url = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
+            window.location.href = url;
         }
 
         function openModal(type) {
             const body = document.getElementById('modal-body');
-            if(!body) return;
-            
             let html = "";
 
             switch(type) {
@@ -518,30 +499,21 @@
             }
 
             body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
-            
-            const overlay = document.getElementById('modal-overlay');
-            if(overlay) overlay.style.display = 'flex';
+            document.getElementById('modal-overlay').style.display = 'flex';
         }
 
         const saveProfile = () => {
-            const waEl = document.getElementById('whatsapp-input');
-            const emEl = document.getElementById('email-input');
-            
-            if(!waEl || !emEl) return;
-            
             apiRequest(ENDPOINTS.update, {
-                whatsapp: waEl.value,
-                email: emEl.value
+                whatsapp: document.getElementById('whatsapp-input').value,
+                email: document.getElementById('email-input').value
             }, t('success'));
         };
 
         function closeModal() { 
-            const overlay = document.getElementById('modal-overlay');
-            if(overlay) overlay.style.display = 'none'; 
-            try { tg.MainButton.hide(); } catch(e){}
+            document.getElementById('modal-overlay').style.display = 'none'; 
+            tg.MainButton.hide();
         }
         
-        // Вызов загрузки данных
         loadData();
     </script>
 </body>
