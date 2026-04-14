@@ -1,6 +1,6 @@
 const translations = {
     ru: {
-        welcome: "ДОБРО ПОЖАЛОВАТЬ!",
+        welcome: "WELCOME!",
         hum: "Влажн",
         wind: "Ветер",
         emergency: "Экстренно",
@@ -108,7 +108,7 @@ const translations = {
         status_offline: "Offline Mode"
     },
     uk: {
-        welcome: "ЛАСКАВО ПРОСИМО!",
+        welcome: "WELCOME!",
         hum: "Волог",
         wind: "Вітер",
         emergency: "Екстрено",
@@ -162,7 +162,7 @@ const translations = {
         status_offline: "Офлайн режим"
     },
     sr: { // Черногорский (сербский)
-        welcome: "DOBRODOŠLI!",
+        welcome: "WELCOME!",
         hum: "Vlaž",
         wind: "Vjetar",
         emergency: "Hitno",
