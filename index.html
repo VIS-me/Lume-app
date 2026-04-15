@@ -457,10 +457,11 @@
                 case 'emergency':
                     html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">${t('emergency')}</h2>`;
                     cachedData?.emergency?.forEach(e => {
+                        const cleanPhone = String(e.Phone).replace(/[^\d\+]/g, '');
                         html += `
                             <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
                                 <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
-                                <a href="tel:${String(e.Phone).replace(/\s/g, '')}" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase active:bg-red-600">${e.Phone}</a>
+                                <button onclick="window.location.href='tel:${cleanPhone}'" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase active:bg-red-600">${e.Phone}</button>
                             </div>`;
                     });
                     break;
@@ -468,16 +469,33 @@
                     html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('management')}</h2>`;
                     cachedData?.management?.forEach(m => {
                         const val = String(m.Value || "").trim();
-                        const valL = val.toLowerCase();
-                        const isEmail = valL.includes('@'), isPhone = /^\+?\d/.test(valL);
-                        const url = isEmail ? `mailto:${val}` : (isPhone ? `tel:${val.replace(/\s/g, '')}` : `https://t.me/${val.replace('@','')}`);
-                        const btnTxt = isEmail ? 'Email' : (isPhone ? 'Call' : 'Chat');
-                        const btnCol = isEmail ? 'bg-slate-600' : (isPhone ? 'bg-green-600' : 'bg-[#0088cc]');
+                        let onClickAction = '';
+                        let btnTxt = '';
+                        let btnCol = '';
+
+                        if (val.includes('@') && val.includes('.')) {
+                            // Email
+                            btnTxt = 'Email';
+                            btnCol = 'bg-slate-600';
+                            onClickAction = `window.location.href='mailto:${val}'`;
+                        } else if (val.startsWith('@') || val.toLowerCase().includes('t.me/')) {
+                            // Telegram Username / Link
+                            const tgUsername = val.replace('@', '').replace('https://t.me/', '').replace('http://t.me/', '').replace('t.me/', '');
+                            btnTxt = 'Chat';
+                            btnCol = 'bg-[#0088cc]';
+                            onClickAction = `tg.openTelegramLink('https://t.me/${tgUsername}')`;
+                        } else {
+                            // Phone
+                            const cleanPhone = val.replace(/[^\d\+]/g, '');
+                            btnTxt = 'Call';
+                            btnCol = 'bg-green-600';
+                            onClickAction = `window.location.href='tel:${cleanPhone}'`;
+                        }
 
                         html += `
                             <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
                                 <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm text-white">${val}</span></div>
-                                <button onclick="${url.startsWith('http') ? `tg.openLink('${url}')` : `window.location.href='${url}'`}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
+                                <button onclick="${onClickAction}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
                             </div>`;
                     });
                     break;
