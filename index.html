@@ -164,6 +164,10 @@
                             <span id="t-garage" class="text-xs font-medium">гараж</span>
                             <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
                         </div>
+                        <div class="flex justify-between finance-item text-green-400 mt-2">
+                            <span id="t-paid" class="text-xs font-medium">оплачено</span>
+                            <span id="debt-paid" class="text-sm font-bold">0.00 €</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,6 +230,7 @@
             document.getElementById('t-maintenance').innerText = t('maintenance');
             document.getElementById('t-hot-water').innerText = t('hot_water');
             document.getElementById('t-garage').innerText = t('garage');
+            document.getElementById('t-paid').innerText = t('paid');
             document.getElementById('t-close').innerText = t('close');
             document.getElementById('t-home-nav').innerText = t('home_nav');
             document.getElementById('t-tasks-nav').innerText = t('tasks_nav');
@@ -298,6 +303,7 @@
                     document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
                     document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
                     document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
+                    document.getElementById('debt-paid').innerText = `${f.Paid_Amount || "0.00"} ${cur}`;
                     document.getElementById('payment-date').innerText = f.last_update || "--";
                 }
 
