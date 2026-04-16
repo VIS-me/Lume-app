@@ -77,7 +77,10 @@
         <div id="page-home" class="page active">
             <div class="glass-card p-8 mb-6">
                 <p id="t-welcome" class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">WELCOME!</p>
-                <h2 id="complex-display-name" class="text-2xl font-bold italic mb-8">--</h2>
+                <div class="flex items-center justify-between mb-8">
+                    <h2 id="complex-display-name" class="text-2xl font-bold italic">--</h2>
+                    <img id="complex-logo" class="w-12 h-12 rounded-full object-cover hidden border border-white/10 shadow-sm shrink-0 ml-4" src="" alt="Logo">
+                </div>
                 <div class="flex justify-between items-end">
                     <div class="grid grid-cols-2 gap-6">
                         <div>
@@ -284,6 +287,14 @@
                 isStaff = ['engineer', 'director', 'administrator', 'staff'].some(r => roleLower.includes(r));
 
                 document.getElementById('complex-display-name').innerText = data.complex_name || "--";
+                
+                const logoEl = document.getElementById('complex-logo');
+                if (data.complex_logo) {
+                    logoEl.src = data.complex_logo;
+                    logoEl.classList.remove('hidden');
+                } else {
+                    logoEl.classList.add('hidden');
+                }
 
                 if (data.weather) {
                     const rawTemp = String(data.weather.temp || "0").replace(/[^\d.-]/g, ''); 
