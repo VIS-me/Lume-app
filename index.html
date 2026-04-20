@@ -229,7 +229,7 @@
             </div>
 
             <!-- Placeholders for lists -->
-            <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Назначение ролей (В разработке)</button>
+            <button id="sa-edit-roles-btn" onclick="openAdminRoles()" class="w-full glass-card p-3 border-blue-500/30 text-[10px] font-black uppercase text-blue-400 active:bg-blue-500/10 text-left">> Назначение ролей</button>
             <button id="sa-edit-contacts-btn" onclick="openAdminContacts()" class="w-full glass-card p-3 border-blue-500/30 text-[10px] font-black uppercase text-blue-400 active:bg-blue-500/10 text-left">> Управление Телефонами (Экстренные и УК)</button>
             <button id="sa-edit-services-btn" onclick="openAdminItems('services')" class="w-full glass-card p-3 border-blue-500/30 text-[10px] font-black uppercase text-blue-400 active:bg-blue-500/10 text-left">> Перечень услуг (Клининг, Мастер...)</button>
             <button id="sa-edit-checklists-btn" onclick="openAdminItems('checklists')" class="w-full glass-card p-3 border-blue-500/30 text-[10px] font-black uppercase text-blue-400 active:bg-blue-500/10 text-left">> Списки чеклиста (Бассейн, Паркинг...)</button>
@@ -321,7 +321,9 @@
             adminContacts: `${API_BASE}/api/admin_contacts`,
             adminSaveContact: `${API_BASE}/api/admin_save_contact`,
             adminItems: `${API_BASE}/api/admin_items`,
-            adminSaveItem: `${API_BASE}/api/admin_save_item`
+            adminSaveItem: `${API_BASE}/api/admin_save_item`,
+            adminRoles: `${API_BASE}/api/admin_roles`,
+            adminSaveRole: `${API_BASE}/api/admin_save_role`
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -675,6 +677,7 @@
             selectedLogoFile = null;
             document.getElementById('sa-edit-logo-input').value = "";
             const preview = document.getElementById('sa-edit-logo-preview');
+            const rolesBtn = document.getElementById('sa-edit-roles-btn');
             const contactsBtn = document.getElementById('sa-edit-contacts-btn');
             const servicesBtn = document.getElementById('sa-edit-services-btn');
             const checklistsBtn = document.getElementById('sa-edit-checklists-btn');
@@ -686,6 +689,7 @@
                 document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
                 
+                rolesBtn.style.display = 'block';
                 contactsBtn.style.display = 'block';
                 servicesBtn.style.display = 'block';
                 checklistsBtn.style.display = 'block';
@@ -702,6 +706,7 @@
                 document.getElementById('sa-edit-name').value = "";
                 document.getElementById('sa-edit-city').value = "";
                 document.getElementById('sa-edit-status').checked = true;
+                rolesBtn.style.display = 'none';
                 contactsBtn.style.display = 'none';
                 servicesBtn.style.display = 'none';
                 checklistsBtn.style.display = 'none';
@@ -1006,6 +1011,134 @@
                         
                         tg.MainButton.hide();
                         fetchAdminItems(comp_id, type);
+                    } catch (err) {
+                        tg.MainButton.hide();
+                        tg.showAlert("Ошибка: " + err.message);
+                    }
+                }
+            });
+        }
+        async function openAdminRoles() {
+            const comp_id = document.getElementById('sa-edit-id').value;
+            if (!comp_id) {
+                tg.showAlert("Сначала сохраните новый ЖК!");
+                return;
+            }
+            
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">Загрузка...</p>`;
+            document.getElementById('modal-overlay').style.display = 'flex';
+            
+            await fetchAdminRoles(comp_id);
+        }
+
+        async function fetchAdminRoles(comp_id) {
+            try {
+                const response = await fetch(`${ENDPOINTS.adminRoles}?user_id=${APP_CONFIG.user_id}&complex_id=${comp_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Назначение ролей</h2>
+                            <div class="space-y-3 mb-6" id="admin-roles-list">`;
+                
+                if (data.roles && data.roles.length > 0) {
+                    data.roles.forEach(r => {
+                        const displayName = r.full_name || r.username || `User ${r.id}`;
+                        const displayApt = r.apt ? ` (Апт: ${r.apt})` : '';
+                        html += `
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
+                                <div>
+                                    <p class="text-white text-sm font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500">${displayApt}</span></p>
+                                    <p class="text-[10px] uppercase font-black text-slate-400 mt-1">@${r.username || 'unknown'} • Роль: <span class="text-blue-400">${r.role || 'user'}</span></p>
+                                </div>
+                                <button onclick="deleteAdminRole('${r.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Отвязать</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p class="text-center text-slate-500 py-6 text-xs italic">Список пуст</p>`;
+                }
+                
+                html += `</div>
+                
+                <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить / Изменить роль</h3>
+                <div class="space-y-3">
+                    <input type="text" id="add-role-username" class="text-sm bg-black/20 border border-white/10 p-3 rounded-xl w-full" placeholder="Username (без @) или ID">
+                    <select id="add-role-select" class="text-sm bg-[#1A1A1A] text-white border border-white/10 p-3 rounded-xl w-full focus:outline-none focus:border-blue-500">
+                        <option value="resident">Resident / Жилец</option>
+                        <option value="master">Master / Мастер</option>
+                        <option value="guard">Guard / Охрана</option>
+                        <option value="administrator">Administrator / Администратор</option>
+                        <option value="accountant">Accountant / Бухгалтер</option>
+                        <option value="engineer">Engineer / Инженер</option>
+                        <option value="director">Director / Директор</option>
+                    </select>
+                    <button onclick="saveAdminRole('${comp_id}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">СОХРАНИТЬ</button>
+                    <p class="text-[9px] text-slate-500 text-center leading-tight mt-2">Если пользователя нет в базе (он еще не заходил в бота), будет создана пустая запись, которая привяжется к нему, когда он зайдет с этим username.</p>
+                </div>`;
+                
+                document.getElementById('modal-body').innerHTML = html;
+            } catch (err) {
+                document.getElementById('modal-body').innerHTML = `<p class="text-red-500 text-center py-10">${err.message}</p>`;
+            }
+        }
+        
+        async function saveAdminRole(comp_id) {
+            const username = document.getElementById('add-role-username').value;
+            const role = document.getElementById('add-role-select').value;
+            
+            if (!username.trim()) {
+                tg.showAlert("Введите Username!");
+                return;
+            }
+            
+            const payload = {
+                user_id: APP_CONFIG.user_id,
+                action: 'add',
+                complex_id: comp_id,
+                username: username,
+                role: role
+            };
+            
+            tg.MainButton.setText("СОХРАНЕНИЕ...").show();
+            try {
+                const response = await fetch(ENDPOINTS.adminSaveRole, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                tg.MainButton.hide();
+                fetchAdminRoles(comp_id); // reload list inline
+            } catch (err) {
+                tg.MainButton.hide();
+                tg.showAlert("Ошибка: " + err.message);
+            }
+        }
+        
+        async function deleteAdminRole(target_id, comp_id) {
+            tg.showConfirm("Отвязать пользователя от этого ЖК? (его роль сбросится)", async (confirmed) => {
+                if (confirmed) {
+                    tg.MainButton.setText("ОБРАБОТКА...").show();
+                    try {
+                        const response = await fetch(ENDPOINTS.adminSaveRole, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                            body: JSON.stringify({
+                                user_id: APP_CONFIG.user_id,
+                                action: 'delete',
+                                id: target_id
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.error) throw new Error(data.error);
+                        
+                        tg.MainButton.hide();
+                        fetchAdminRoles(comp_id);
                     } catch (err) {
                         tg.MainButton.hide();
                         tg.showAlert("Ошибка: " + err.message);
