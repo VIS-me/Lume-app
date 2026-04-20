@@ -230,8 +230,7 @@
 
             <!-- Placeholders for lists -->
             <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Назначение ролей (В разработке)</button>
-            <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Экстренные телефоны (В разработке)</button>
-            <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Телефоны ЖК (В разработке)</button>
+            <button id="sa-edit-contacts-btn" onclick="openAdminContacts()" class="w-full glass-card p-3 border-blue-500/30 text-[10px] font-black uppercase text-blue-400 active:bg-blue-500/10 text-left">> Управление Телефонами (Экстренные и УК)</button>
             <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Перечень услуг (В разработке)</button>
             <button class="w-full glass-card p-3 border-white/10 text-[10px] font-black uppercase text-slate-400 active:bg-white/5 text-left">> Списки чеклиста (В разработке)</button>
 
@@ -318,7 +317,9 @@
             remind: `${API_BASE}/api/remind_payment`,
             report: `${API_BASE}/api/send_pdf_report`,
             adminComplexes: `${API_BASE}/api/admin_complexes`,
-            adminComplexUpdate: `${API_BASE}/api/admin_complex_update`
+            adminComplexUpdate: `${API_BASE}/api/admin_complex_update`,
+            adminContacts: `${API_BASE}/api/admin_contacts`,
+            adminSaveContact: `${API_BASE}/api/admin_save_contact`
         };
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -672,6 +673,7 @@
             selectedLogoFile = null;
             document.getElementById('sa-edit-logo-input').value = "";
             const preview = document.getElementById('sa-edit-logo-preview');
+            const contactsBtn = document.getElementById('sa-edit-contacts-btn');
             
             if (complex) {
                 title.innerText = "Редактирование: " + complex.name;
@@ -679,6 +681,8 @@
                 document.getElementById('sa-edit-name').value = complex.name || "";
                 document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
+                
+                contactsBtn.style.display = 'block';
                 
                 if (complex.logo_url) {
                     preview.src = complex.logo_url;
@@ -692,6 +696,7 @@
                 document.getElementById('sa-edit-name').value = "";
                 document.getElementById('sa-edit-city').value = "";
                 document.getElementById('sa-edit-status').checked = true;
+                contactsBtn.style.display = 'none';
                 preview.classList.add('hidden');
             }
 
@@ -742,6 +747,131 @@
                 tg.showAlert("Ошибка: " + err.message);
                 btn.hide();
             }
+        }
+        
+        async function openAdminContacts() {
+            const comp_id = document.getElementById('sa-edit-id').value;
+            if (!comp_id) {
+                tg.showAlert("Сначала сохраните новый ЖК!");
+                return;
+            }
+            
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">Загрузка...</p>`;
+            document.getElementById('modal-overlay').style.display = 'flex';
+            
+            await fetchAdminContacts(comp_id);
+        }
+
+        async function fetchAdminContacts(comp_id) {
+            try {
+                const response = await fetch(`${ENDPOINTS.adminContacts}?user_id=${APP_CONFIG.user_id}&complex_id=${comp_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Контакты (Экстренные/УК)</h2>
+                            <div class="space-y-3 mb-6" id="admin-contacts-list">`;
+                
+                if (data.contacts && data.contacts.length > 0) {
+                    data.contacts.forEach(c => {
+                        html += `
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase text-slate-500">${c.type} ${c.is_emergency ? '🚨' : ''}</p>
+                                    <p class="text-white text-sm font-bold">${c.name || c.name_or_type || 'N/A'}</p>
+                                    <p class="text-slate-400 text-xs">${c.value || c.contact_value || 'N/A'}</p>
+                                </div>
+                                <button onclick="deleteAdminContact('${c.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40">Del</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p class="text-center text-slate-500 py-6 text-xs italic">Нет контактов</p>`;
+                }
+                
+                html += `</div>
+                
+                <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить новый</h3>
+                <div class="space-y-3">
+                    <input type="text" id="add-contact-name" class="text-sm" placeholder="Название (например: Электрик)">
+                    <input type="text" id="add-contact-value" class="text-sm" placeholder="Номер или @юзернейм">
+                    <label class="flex items-center space-x-2 text-sm text-slate-300 font-bold ml-1 pt-1">
+                        <input type="checkbox" id="add-contact-emergency" class="w-4 h-4 rounded appearance-none border border-white/20 checked:bg-red-500 checked:border-red-500"> 
+                        <span>Экстренный вызов? 🚨</span>
+                    </label>
+                    <button onclick="saveAdminContact('${comp_id}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">ДОБАВИТЬ</button>
+                </div>`;
+                
+                document.getElementById('modal-body').innerHTML = html;
+            } catch (err) {
+                document.getElementById('modal-body').innerHTML = `<p class="text-red-500 text-center py-10">${err.message}</p>`;
+            }
+        }
+        
+        async function saveAdminContact(comp_id) {
+            const name = document.getElementById('add-contact-name').value;
+            const value = document.getElementById('add-contact-value').value;
+            const is_emergency = document.getElementById('add-contact-emergency').checked;
+            
+            if (!name.trim() || !value.trim()) {
+                tg.showAlert("Заполните название и номер!");
+                return;
+            }
+            
+            tg.MainButton.setText("СОХРАНЕНИЕ...").show();
+            try {
+                const response = await fetch(ENDPOINTS.adminSaveContact, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({
+                        user_id: APP_CONFIG.user_id,
+                        action: 'add',
+                        complex_id: comp_id,
+                        name: name,
+                        value: value,
+                        is_emergency: is_emergency
+                    })
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                tg.MainButton.hide();
+                fetchAdminContacts(comp_id); // reload modal content
+            } catch (err) {
+                tg.MainButton.hide();
+                tg.showAlert("Ошибка: " + err.message);
+            }
+        }
+        
+        async function deleteAdminContact(contact_id, comp_id) {
+            // Using standard confirm may block execution in TG Web Apps depending on platform, better to avoid if possible, but let's see. 
+            // Better to use tg.showConfirm
+            tg.showConfirm("Удалить контакт?", async (confirmed) => {
+                if (confirmed) {
+                    tg.MainButton.setText("УДАЛЕНИЕ...").show();
+                    try {
+                        const response = await fetch(ENDPOINTS.adminSaveContact, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                            body: JSON.stringify({
+                                user_id: APP_CONFIG.user_id,
+                                action: 'delete',
+                                id: contact_id
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.error) throw new Error(data.error);
+                        
+                        tg.MainButton.hide();
+                        fetchAdminContacts(comp_id); // reload modal content
+                    } catch (err) {
+                        tg.MainButton.hide();
+                        tg.showAlert("Ошибка: " + err.message);
+                    }
+                }
+            });
         }
         // --- END SUPERADMIN LOGIC ---
 
