@@ -386,7 +386,7 @@
                     document.getElementById('pdf-report-btn')?.classList.toggle('hidden', !isEngineer);
                 }
 
-                if (roleLower === 'superadmin') {
+                if (roleLower.includes('superadmin')) {
                     document.getElementById('admin-block')?.classList.remove('hidden');
                     document.getElementById('superadmin-btn')?.classList.remove('hidden');
                 }
