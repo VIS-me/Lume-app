@@ -213,6 +213,12 @@
                 <input type="text" id="sa-edit-name" class="w-full bg-transparent border-b border-white/10 text-sm pb-2 placeholder-slate-600" placeholder="Введите название...">
             </div>
 
+            <!-- City -->
+            <div class="glass-card p-4">
+                <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Город (City)</p>
+                <input type="text" id="sa-edit-city" class="w-full bg-transparent border-b border-white/10 text-sm pb-2 placeholder-slate-600" placeholder="Например: Becici,ME">
+            </div>
+
             <!-- Logo Upload -->
             <div class="glass-card p-4">
                 <p class="text-[10px] text-slate-500 mb-2 uppercase font-black">Логотип (SVG, PNG, 300x300)</p>
@@ -641,6 +647,7 @@
                                     ${c.logo_url ? `<img src="${c.logo_url}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">🏢</div>`}
                                     <div>
                                         <p class="font-bold text-sm text-white">${c.name || 'Unnamed'}</p>
+                                        <p class="text-[9px] text-gray-400 mb-1">${c.city || 'Город не указан'}</p>
                                         <p class="text-[8px] font-black uppercase tracking-wider ${statusColor}">${c.status || 'Inactive'}</p>
                                     </div>
                                 </div>
@@ -670,6 +677,7 @@
                 title.innerText = "Редактирование: " + complex.name;
                 document.getElementById('sa-edit-id').value = complex.id;
                 document.getElementById('sa-edit-name').value = complex.name || "";
+                document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
                 
                 if (complex.logo_url) {
@@ -682,6 +690,7 @@
                 title.innerText = "Новый комплекс";
                 document.getElementById('sa-edit-id').value = "";
                 document.getElementById('sa-edit-name').value = "";
+                document.getElementById('sa-edit-city').value = "";
                 document.getElementById('sa-edit-status').checked = true;
                 preview.classList.add('hidden');
             }
@@ -708,6 +717,7 @@
                 formData.append('user_id', APP_CONFIG.user_id);
                 formData.append('id', document.getElementById('sa-edit-id').value);
                 formData.append('name', document.getElementById('sa-edit-name').value);
+                formData.append('city', document.getElementById('sa-edit-city').value);
                 formData.append('is_active', document.getElementById('sa-edit-status').checked ? 'true' : 'false');
                 
                 if (selectedLogoFile) {
