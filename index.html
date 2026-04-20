@@ -623,7 +623,9 @@
 
         async function fetchSuperadminData() {
             try {
-                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`);
+                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
                 
@@ -714,6 +716,7 @@
 
                 const response = await fetch(ENDPOINTS.adminComplexUpdate, {
                     method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true' },
                     body: formData
                 });
                 
