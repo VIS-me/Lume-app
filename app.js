@@ -21,8 +21,6 @@ const tg = window.Telegram.WebApp;
             document.getElementById('t-in-progress').innerText = t('in_progress');
             document.getElementById('t-notification').innerText = t('notification');
             document.getElementById('t-debtors-list').innerText = t('debtors_list');
-            document.getElementById('t-payment-reminder').innerText = t('payment_reminder');
-            document.getElementById('pdf-report-btn').innerText = t('pdf_report');
             document.getElementById('engineer-btn').innerText = t('checklist');
             document.getElementById('t-edit-btn').innerText = t('edit');
             document.getElementById('t-apartment-label').innerText = t('apartment');
@@ -131,13 +129,9 @@ const tg = window.Telegram.WebApp;
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
                     document.getElementById('t-debtors-list')?.classList.remove('hidden');
-                    document.getElementById('t-payment-reminder')?.classList.remove('hidden');
-                    document.getElementById('pdf-report-btn')?.classList.remove('hidden');
                 } else if (roleAdminBlock.includes('accountant')) {
                     showAdminBlock = true;
                     document.getElementById('t-debtors-list')?.classList.remove('hidden');
-                    document.getElementById('t-payment-reminder')?.classList.remove('hidden');
-                    document.getElementById('pdf-report-btn')?.classList.remove('hidden');
                 } else if (roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
@@ -281,7 +275,16 @@ const tg = window.Telegram.WebApp;
                         <button onclick="sendPdfReport()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('gen_send')}</button>`;
                     break;
                 case 'debtors':
-                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('debtors_list')}</h2><div class="space-y-2">`;
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('debtors_list')}</h2>`;
+                    
+                    // Add the "Remind Payment" and "PDF Report" buttons at the top of the modal
+                    html += `
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <button onclick="openModal('payment-reminders')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pay_remind_title') || 'Remind'}</button>
+                            <button onclick="openModal('pdf-report-confirm')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pdf_title') || 'PDF Report'}</button>
+                        </div>
+                        <div class="space-y-2">`;
+                        
                     const debtFiltered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
                     if (!debtFiltered.length) {
                         html += `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">${t('no_debtors')}</p>`;
