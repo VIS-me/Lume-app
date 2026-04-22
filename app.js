@@ -125,16 +125,18 @@ const tg = window.Telegram.WebApp;
                 const roleAdminBlock = roleLower;
                 let showAdminBlock = false;
                 
-                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator')) {
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
-                    document.getElementById('t-debtors-list')?.classList.remove('hidden');
-                } else if (roleAdminBlock.includes('accountant')) {
+                }
+                
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
                     showAdminBlock = true;
                     document.getElementById('t-debtors-list')?.classList.remove('hidden');
-                } else if (roleAdminBlock.includes('engineer')) {
+                }
+                
+                if (roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
-                    document.getElementById('t-notification')?.classList.remove('hidden');
                     document.getElementById('engineer-btn')?.classList.remove('hidden');
                 }
                 
