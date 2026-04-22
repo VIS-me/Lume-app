@@ -52,7 +52,15 @@ const translations = {
         error_fields: "Заполните все поля",
         error_conn: "Ошибка соединения",
         status_live: "Система онлайн",
-        status_offline: "Оффлайн режим"
+        status_offline: "Оффлайн режим",
+        chk_title: "Технический обход",
+        chk_norm: "Норма",
+        chk_warn: "Внимание",
+        chk_err: "Авария",
+        chk_send: "Отправить отчет",
+        chk_comment: "Комментарий к объекту...",
+        chk_load: "Загрузка объектов из Services...",
+        chk_err_load: "Ошибка: проверьте столбец Area_object в листе Services"
     },
     en: {
         welcome: "WELCOME!",
@@ -107,7 +115,15 @@ const translations = {
         error_fields: "Please fill all fields",
         error_conn: "Connection error",
         status_live: "System Live",
-        status_offline: "Offline Mode"
+        status_offline: "Offline Mode",
+        chk_title: "Technical round",
+        chk_norm: "Norm",
+        chk_warn: "Warning",
+        chk_err: "Emergency",
+        chk_send: "Send report",
+        chk_comment: "Comment to object...",
+        chk_load: "Loading objects from Services...",
+        chk_err_load: "Error: check Area_object column in Services list"
     },
     uk: {
         welcome: "WELCOME!",
@@ -162,7 +178,15 @@ const translations = {
         error_fields: "Заповніть всі поля",
         error_conn: "Помилка з'єднання",
         status_live: "Система онлайн",
-        status_offline: "Офлайн режим"
+        status_offline: "Офлайн режим",
+        chk_title: "Технічний обхід",
+        chk_norm: "Норма",
+        chk_warn: "Увага",
+        chk_err: "Аварія",
+        chk_send: "Надіслати звіт",
+        chk_comment: "Коментар до об'єкту...",
+        chk_load: "Завантаження об'єктів...",
+        chk_err_load: "Помилка: перевірте Area_object в Services"
     },
     sr: { // Черногорский (сербский)
         welcome: "WELCOME!",
@@ -217,6 +241,14 @@ const translations = {
         error_fields: "Molimo popunite sva polja",
         error_conn: "Greška u konekciji",
         status_live: "Sistem aktivan",
-        status_offline: "Ofline režim"
+        status_offline: "Ofline režim",
+        chk_title: "Tehnički pregled",
+        chk_norm: "Norma",
+        chk_warn: "Upozorenje",
+        chk_err: "Kvar",
+        chk_send: "Pošalji izvještaj",
+        chk_comment: "Komentar objekta...",
+        chk_load: "Učitavanje objekata...",
+        chk_err_load: "Greška: provjerite Area_object u Services"
     }
 };
