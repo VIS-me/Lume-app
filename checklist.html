@@ -51,14 +51,14 @@
         <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
             <span class="text-xl">←</span>
         </button>
-        <h1 class="text-lg font-bold italic">Technical Checklist</h1>
+        <h1 id="header-title" class="text-lg font-bold italic">Technical Checklist</h1>
         <div class="w-10"></div>
     </div>
 
     <!-- Загрузка -->
     <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
         <div class="loader"></div>
-        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов из Services...</p>
+        <p id="loading-text" class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов из Services...</p>
     </div>
 
     <div id="checklist-container" class="space-y-6 hidden">
@@ -66,14 +66,26 @@
     </div>
 
     <div id="footer-section" class="hidden">
-        <button onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
+        <button id="btn-send-report" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
             Отправить отчет
         </button>
     </div>
 
+    <!-- Translations & Scripts -->
+    <script src="translations.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
+        function getLang() {
+            const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
+            if (code.includes('ru')) return 'ru';
+            if (code.includes('uk')) return 'uk';
+            if (['sr', 'hr', 'bs', 'me'].some(x => code.includes(x))) return 'sr';
+            return 'en';
+        }
+        const lang = getLang();
+        const t = (key) => translations[lang][key] || translations['en'][key] || key;
 
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
         const API_DATA = `${API_BASE}/api/data`;
@@ -87,7 +99,14 @@
 
         let loadedCategories = [];
 
+        function updateStaticTranslations() {
+            document.getElementById('header-title').innerText = t('chk_title');
+            document.getElementById('btn-send-report').innerText = t('chk_send');
+            document.getElementById('loading-text').innerText = t('chk_load');
+        }
+
         async function init() {
+            updateStaticTranslations();
             try {
                 const response = await fetch(`${API_DATA}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -104,7 +123,7 @@
             } catch (err) {
                 console.error("Load error:", err);
                 document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка: проверьте столбец Area_object в листе Services</p>
+                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">${t('chk_err_load')}</p>
                 `;
             }
         }
@@ -112,6 +131,12 @@
         function renderChecklist(categories) {
             const container = document.getElementById('checklist-container');
             
+            const statuses = [
+                { key: 'chk_norm', color: 'text-green-500' }, 
+                { key: 'chk_warn', color: 'text-yellow-500' }, 
+                { key: 'chk_err', color: 'text-red-500' }
+            ];
+
             container.innerHTML = categories.map((name, index) => {
                 const id = `cat_${index}`;
                 return `
@@ -119,17 +144,17 @@
                         <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${name}</p>
                         
                         <div class="grid grid-cols-3 gap-2 mb-4">
-                            ${['Норма', 'Внимание', 'Авария'].map(status => `
+                            ${statuses.map((status, sIdx) => `
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="status-${id}" value="${status}" ${status === 'Норма' ? 'checked' : ''} class="status-check hidden">
+                                    <input type="radio" name="status-${id}" value="${status.key}" ${sIdx === 0 ? 'checked' : ''} class="status-check hidden">
                                     <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
-                                        <span class="text-[8px] font-black uppercase ${getStatusColor(status)}">${status}</span>
+                                        <span class="text-[8px] font-black uppercase ${status.color}">${t(status.key)}</span>
                                     </div>
                                 </label>
                             `).join('')}
                         </div>
 
-                        <input type="text" id="note-${id}" placeholder="Комментарий к объекту..." class="text-[12px]">
+                        <input type="text" id="note-${id}" placeholder="${t('chk_comment')}" class="text-[12px]">
                     </div>
                 `;
             }).join('');
@@ -139,29 +164,27 @@
             document.getElementById('footer-section').classList.remove('hidden');
         }
 
-        function getStatusColor(status) {
-            if (status === 'Норма') return 'text-green-500';
-            if (status === 'Внимание') return 'text-yellow-500';
-            return 'text-red-500';
-        }
-
         async function sendFullReport() {
             const btn = tg.MainButton;
             btn.setText("ОТПРАВКА...").show();
             
             // Собираем данные по каждому пункту
-            const items = loadedCategories.map((name, index) => ({
-                name: name, // Изменено с category на name
-                status: document.querySelector(`input[name="status-cat_${index}"]:checked`).value,
-                note: document.getElementById(`note-cat_${index}`).value
-            }));
+            const items = loadedCategories.map((name, index) => {
+                const statusKey = document.querySelector(`input[name="status-cat_${index}"]:checked`).value;
+                return {
+                    name: name,
+                    status: statusKey, // e.g. chk_norm
+                    note: document.getElementById(`note-cat_${index}`).value
+                };
+            });
 
             const payload = {
                 user_id: USER_INFO.user_id,
                 complex_id: USER_INFO.complex_id,
-                object_name: "Технический обход", // Добавлено название для PDF и БД
-                items: items, // Изменено с reports на items
-                timestamp: new Date().toLocaleString('ru-RU')
+                object_name: t('chk_title'), // Добавлено название для PDF и БД (уже переведенное!)
+                items: items, 
+                timestamp: new Date().toLocaleString('ru-RU'),
+                lang: lang
             };
 
             try {
@@ -172,13 +195,13 @@
                 });
 
                 if (response.ok) {
-                    btn.setText("ОТЧЕТ ПРИНЯТ").setParams({ color: "#22c55e" });
+                    btn.setText(t('success')).setParams({ color: "#22c55e" });
                     setTimeout(() => goBack(), 1500);
                 } else {
                     throw new Error();
                 }
             } catch (err) {
-                tg.showAlert("Не удалось отправить отчет.");
+                tg.showAlert(t('error_conn'));
                 btn.hide();
             }
         }
