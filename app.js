@@ -168,7 +168,7 @@ const tg = window.Telegram.WebApp;
 
         function toggleArchive() {
             showingArchive = !showingArchive;
-            updateView('in-progress');
+            openModal('in-progress');
         }
 
         async function requestPdfReport() {
