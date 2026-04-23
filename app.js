@@ -3,11 +3,17 @@ const tg = window.Telegram.WebApp;
         tg.ready();
 
         // --- MULTILINGUAL LOGIC ---
-        const userLang = tg.initDataUnsafe?.user?.language_code || 'en';
-        const lang = translations[userLang] ? userLang : 'en';
+        function getLang() {
+            const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
+            if (code.includes('ru')) return 'ru';
+            if (code.includes('uk') || code.includes('ua')) return 'uk';
+            if (['sr', 'hr', 'bs', 'me'].some(x => code.includes(x))) return 'sr';
+            return 'en';
+        }
+        const lang = getLang();
 
         function t(key) {
-            return translations[lang][key] || translations['en'][key] || key;
+            return translations[lang]?.[key] || translations['en'][key] || key;
         }
 
         function applyStaticTranslations() {
@@ -48,6 +54,7 @@ const tg = window.Telegram.WebApp;
             broadcast: `${API_BASE}/api/broadcast`,
             remind: `${API_BASE}/api/remind_payment`,
             report: `${API_BASE}/api/send_pdf_report`,
+            ordersReport: `${API_BASE}/api/report_orders`,
             adminComplexes: `${API_BASE}/api/admin_complexes`,
             adminComplexUpdate: `${API_BASE}/api/admin_complex_update`,
             adminContacts: `${API_BASE}/api/admin_contacts`,
@@ -66,6 +73,8 @@ const tg = window.Telegram.WebApp;
 
         let cachedData = null;
         let isStaff = false;
+        let showingArchive = false;
+        let roleLower = "";
 
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `page-${pageId}`));
@@ -87,7 +96,7 @@ const tg = window.Telegram.WebApp;
                 const data = await response.json();
                 cachedData = data;
                 
-                const roleLower = (data.role || "").toLowerCase();
+                roleLower = (data.role || "").toLowerCase();
                 isStaff = ['engineer', 'director', 'administrator', 'staff'].some(r => roleLower.includes(r));
 
                 document.getElementById('complex-display-name').innerText = data.complex_name || "--";
@@ -157,30 +166,45 @@ const tg = window.Telegram.WebApp;
             }
         }
 
+        function toggleArchive() {
+            showingArchive = !showingArchive;
+            updateView('in-progress');
+        }
+
+        async function requestPdfReport() {
+            apiRequest(ENDPOINTS.ordersReport, {}, "Отчет формируется...");
+        }
+
         function getTasksHtml() {
-            const orders = cachedData?.active_orders;
+            const orders = showingArchive ? cachedData?.archived_orders : cachedData?.active_orders;
             if (!orders?.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">${t('no_requests')}</p>`;
 
-            const filtered = orders.filter(o => {
-                const s = String(o.status || "").toLowerCase();
-                return isStaff ? !['done', 'выполнено', 'отменено', 'cancelled'].includes(s) : true;
-            });
+            const filtered = orders;
 
             if (!filtered.length) return `<p class="text-[9px] text-slate-600 text-center py-10 uppercase font-black tracking-widest">${t('no_active')}</p>`;
 
             return filtered.map(o => {
                 const sVal = String(o.status || "").toLowerCase();
                 const isInProgress = sVal.includes('progress') || sVal.includes('работе');
-                const sClass = isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500';
+                const sClass = showingArchive ? 'bg-white/5 text-slate-600' : (isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500');
+                
+                let archiveMeta = '';
+                if (showingArchive) {
+                    const dateStr = o.updated_at ? new Date(o.updated_at).toLocaleDateString() : '';
+                    archiveMeta = `<div class="text-[8px] text-slate-500 mt-2 flex gap-2"><span>Завершено: ${dateStr}</span>${o.executor ? `<span>Кто: ${o.executor}</span>` : ''}</div>`;
+                }
                 
                 return `
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
-                        <div class="flex flex-col flex-1 mr-2">
-                            ${isStaff ? `<span class="text-[8px] text-slate-500 font-mono mb-1">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
-                            <span class="text-[11px] text-slate-300 line-clamp-2">${o.desc || 'No description'}</span>
+                    <div class="flex flex-col p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col flex-1 mr-2">
+                                ${(isStaff || showingArchive) ? `<span class="text-[8px] text-slate-500 font-mono mb-1">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
+                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
+                                <span class="text-[11px] text-slate-300 line-clamp-2 mt-1">${o.desc || 'No description'}</span>
+                            </div>
+                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
                         </div>
-                        <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
+                        ${archiveMeta}
                     </div>`;
             }).join('');
         }
@@ -302,7 +326,21 @@ const tg = window.Telegram.WebApp;
                     html += `</div>`;
                     break;
                 case 'in-progress':
-                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('in_progress')}</h2><div class="space-y-1">${getTasksHtml()}</div>`;
+                    let headerTitle = showingArchive ? t('archive_btn') : t('in_progress');
+                    let btns = `<div class="flex gap-2 mb-6">`;
+                    
+                    const canSeeArchive = true; // both residents and privileged can see archive, filtered by backend
+                    const canSeePdf = roleLower.includes('director') || roleLower.includes('administrator') || roleLower.includes('engineer');
+                    
+                    btns += `<button onclick="toggleArchive()" class="flex-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl text-[10px] font-black uppercase text-center transition-all ${showingArchive ? 'text-blue-400 border border-blue-400/50' : 'text-slate-300'}">${showingArchive ? t('active_btn') : t('archive_btn')}</button>`;
+                    
+                    if (canSeePdf) {
+                        btns += `<button onclick="requestPdfReport()" class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 px-3 py-2 rounded-xl text-[10px] font-black uppercase text-blue-400 text-center transition-all border border-blue-500/20">${t('pdf_report')}</button>`;
+                    }
+                    
+                    btns += `</div>`;
+                    
+                    html = `<h2 class="text-xl font-bold mb-4 italic text-blue-400">${headerTitle}</h2>${btns}<div class="space-y-1">${getTasksHtml()}</div>`;
                     break;
                 case 'emergency':
                     html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">${t('emergency')}</h2>`;
