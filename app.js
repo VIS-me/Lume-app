@@ -17,23 +17,37 @@ const tg = window.Telegram.WebApp;
         }
 
         function applyStaticTranslations() {
-            document.getElementById('t-welcome').innerText = t('welcome');
-            document.getElementById('t-hum').innerText = t('hum');
-            document.getElementById('t-wind').innerText = t('wind');
-            document.getElementById('t-emergency').innerText = t('emergency');
-            document.getElementById('t-management').innerText = t('management');
-            document.getElementById('t-support').innerText = t('support');
-            document.getElementById('t-create-request').innerText = t('create_request');
-            document.getElementById('t-in-progress').innerText = t('in_progress');
-            document.getElementById('t-notification').innerText = t('notification');
-            document.getElementById('t-debtors-list').innerText = t('debtors_list');
-            document.getElementById('engineer-btn').innerText = t('checklist');
-            document.getElementById('t-edit-btn').innerText = t('edit');
-            document.getElementById('t-apartment-label').innerText = t('apartment');
-            // Do not override inner text on nodes that contain additional markup inside, only target text content or skip where structure dictates custom mapping
+            // Safe innerText setting logic
+            const safeSet = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text;
+            };
+
+            safeSet('t-welcome', t('welcome'));
+            safeSet('t-hum', t('hum'));
+            safeSet('t-wind', t('wind'));
+            safeSet('t-emergency', t('emergency'));
+            safeSet('t-management', t('management'));
+            safeSet('t-support', t('support'));
+            safeSet('t-create-request', t('create_request'));
+            safeSet('t-in-progress', t('in_progress'));
+            safeSet('t-notification-label', t('notification'));
+            safeSet('t-debtors-label', t('debtors_list'));
+            safeSet('t-checklist-label', t('checklist'));
+            safeSet('t-edit-btn', t('edit'));
+            safeSet('t-apartment-label', t('apartment'));
+            safeSet('t-to-pay', t('to_pay'));
+            safeSet('t-total', t('total'));
+            safeSet('t-maintenance', t('maintenance'));
+            safeSet('t-hot-water', t('hot_water'));
+            safeSet('t-garage', t('garage'));
+            safeSet('t-paid', t('paid'));
+            safeSet('t-close', t('close'));
+            safeSet('t-home-nav', t('home_nav'));
+            safeSet('t-tasks-nav', t('tasks_nav'));
+            safeSet('t-profile-nav', t('profile_nav'));
             
-            const status = document.getElementById('status-label');
-            status.innerText = t('status_live');
+            safeSet('status-label', t('status_live'));
         }
 
         // --- APP LOGIC ---
@@ -73,14 +87,15 @@ const tg = window.Telegram.WebApp;
         }
 
         function updateTheme() {
-            if (tg.colorScheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
             try {
-                tg.setHeaderColor(tg.themeParams.bg_color || (tg.colorScheme === 'dark' ? '#0b0c10' : '#ffffff'));
-                tg.setBackgroundColor(tg.themeParams.bg_color || (tg.colorScheme === 'dark' ? '#0b0c10' : '#ffffff'));
+                if (tg.colorScheme === 'light') {
+                    document.documentElement.classList.add('theme-light');
+                } else {
+                    document.documentElement.classList.remove('theme-light');
+                }
+                const bgColor = tg.themeParams.bg_color || (tg.colorScheme === 'light' ? '#ffffff' : '#0b0c10');
+                tg.setHeaderColor(bgColor);
+                tg.setBackgroundColor(bgColor);
             } catch(e) {}
         }
         updateTheme();
