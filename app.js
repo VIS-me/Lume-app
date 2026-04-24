@@ -17,37 +17,32 @@ const tg = window.Telegram.WebApp;
         }
 
         function applyStaticTranslations() {
-            // Safe innerText setting logic
-            const safeSet = (id, text) => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = text;
-            };
-
-            safeSet('t-welcome', t('welcome'));
-            safeSet('t-hum', t('hum'));
-            safeSet('t-wind', t('wind'));
-            safeSet('t-emergency', t('emergency'));
-            safeSet('t-management', t('management'));
-            safeSet('t-support', t('support'));
-            safeSet('t-create-request', t('create_request'));
-            safeSet('t-in-progress', t('in_progress'));
-            safeSet('t-notification-label', t('notification'));
-            safeSet('t-debtors-label', t('debtors_list'));
-            safeSet('t-checklist-label', t('checklist'));
-            safeSet('t-edit-btn', t('edit'));
-            safeSet('t-apartment-label', t('apartment'));
-            safeSet('t-to-pay', t('to_pay'));
-            safeSet('t-total', t('total'));
-            safeSet('t-maintenance', t('maintenance'));
-            safeSet('t-hot-water', t('hot_water'));
-            safeSet('t-garage', t('garage'));
-            safeSet('t-paid', t('paid'));
-            safeSet('t-close', t('close'));
-            safeSet('t-home-nav', t('home_nav'));
-            safeSet('t-tasks-nav', t('tasks_nav'));
-            safeSet('t-profile-nav', t('profile_nav'));
+            document.getElementById('t-welcome').innerText = t('welcome');
+            document.getElementById('t-hum').innerText = t('hum');
+            document.getElementById('t-wind').innerText = t('wind');
+            document.getElementById('t-emergency').innerText = t('emergency');
+            document.getElementById('t-management').innerText = t('management');
+            document.getElementById('t-support').innerText = t('support');
+            document.getElementById('t-create-request').innerText = t('create_request');
+            document.getElementById('t-in-progress').innerText = t('in_progress');
+            document.getElementById('t-notification').innerText = t('notification');
+            document.getElementById('t-debtors-list').innerText = t('debtors_list');
+            document.getElementById('engineer-btn').innerText = t('checklist');
+            document.getElementById('t-edit-btn').innerText = t('edit');
+            document.getElementById('t-apartment-label').innerText = t('apartment');
+            document.getElementById('t-to-pay').innerText = t('to_pay');
+            document.getElementById('t-total').innerText = t('total');
+            document.getElementById('t-maintenance').innerText = t('maintenance');
+            document.getElementById('t-hot-water').innerText = t('hot_water');
+            document.getElementById('t-garage').innerText = t('garage');
+            document.getElementById('t-paid').innerText = t('paid');
+            document.getElementById('t-close').innerText = t('close');
+            document.getElementById('t-home-nav').innerText = t('home_nav');
+            document.getElementById('t-tasks-nav').innerText = t('tasks_nav');
+            document.getElementById('t-profile-nav').innerText = t('profile_nav');
             
-            safeSet('status-label', t('status_live'));
+            const status = document.getElementById('status-label');
+            status.innerText = t('status_live');
         }
 
         // --- APP LOGIC ---
@@ -84,23 +79,6 @@ const tg = window.Telegram.WebApp;
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `page-${pageId}`));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.id === `nav-${pageId}`));
-        }
-
-        function updateTheme() {
-            try {
-                if (tg.colorScheme === 'light') {
-                    document.documentElement.classList.add('theme-light');
-                } else {
-                    document.documentElement.classList.remove('theme-light');
-                }
-                const bgColor = tg.themeParams.bg_color || (tg.colorScheme === 'light' ? '#ffffff' : '#0b0c10');
-                tg.setHeaderColor(bgColor);
-                tg.setBackgroundColor(bgColor);
-            } catch(e) {}
-        }
-        updateTheme();
-        if (tg.onEvent) {
-            tg.onEvent('themeChanged', updateTheme);
         }
 
         async function loadData() {
@@ -217,14 +195,14 @@ const tg = window.Telegram.WebApp;
                 }
                 
                 return `
-                    <div class="flex flex-col p-4 bg-white/5 rounded-3xl mb-3 border border-white/10 shadow-lg relative overflow-hidden transition-all hover:bg-white/10">
-                        <div class="flex justify-between items-start relative z-10">
-                            <div class="flex flex-col flex-1 mr-3">
-                                ${(isStaff || showingArchive) ? `<span class="text-[9px] text-slate-500/80 font-bold tracking-widest uppercase mb-1 drop-shadow-sm">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
-                                <span class="text-[14px] font-black text-blue-400 uppercase tracking-wider mb-1">${o.category || 'Request'}</span>
-                                <span class="text-[12px] text-slate-300 leading-relaxed font-medium line-clamp-3">${o.desc || 'No description'}</span>
+                    <div class="flex flex-col p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col flex-1 mr-2">
+                                ${(isStaff || showingArchive) ? `<span class="text-[8px] text-slate-500 font-mono mb-1">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
+                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tight">${o.category || 'Request'}</span>
+                                <span class="text-[11px] text-slate-300 line-clamp-2 mt-1">${o.desc || 'No description'}</span>
                             </div>
-                            <span class="text-[9px] font-black px-3 py-1.5 rounded-full ${sClass} uppercase whitespace-nowrap shadow-inner tracking-widest">${o.status}</span>
+                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${sClass} uppercase whitespace-nowrap">${o.status}</span>
                         </div>
                         ${archiveMeta}
                     </div>`;
@@ -297,26 +275,24 @@ const tg = window.Telegram.WebApp;
                     html = `
                         <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('new_request_title')}</h2>
                         <div class="space-y-4">
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest">${t('category')}</p><select id="order-cat" class="text-sm shadow-inner">${servicesHtml}</select></div>
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest">${t('object')}</p><input type="text" id="order-apt" class="text-sm shadow-inner" value="${currentApt}"></div>
-                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest">${t('description')}</p><textarea id="order-desc" class="text-sm h-32 shadow-inner" placeholder="${t('desc_placeholder')}"></textarea></div>
-                            <button onclick="sendOrder()" class="w-full py-4 btn-primary rounded-2xl font-black uppercase text-[11px] tracking-widest mt-6">${t('send_request')}</button>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('category')}</p><select id="order-cat" class="text-sm">${servicesHtml}</select></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('object')}</p><input type="text" id="order-apt" class="text-sm" value="${currentApt}"></div>
+                            <div><p class="text-[10px] text-slate-500 mb-2 uppercase font-black">${t('description')}</p><textarea id="order-desc" class="text-sm h-32" placeholder="${t('desc_placeholder')}"></textarea></div>
+                            <button onclick="sendOrder()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 active:bg-blue-700 transition-colors">${t('send_request')}</button>
                         </div>`;
                     break;
                 case 'notifications':
                     html = `
-                        <h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${t('system_notif')}</h2>
-                        <textarea id="broadcast-msg" class="text-sm h-40 mb-6 shadow-inner" placeholder="${t('notif_placeholder')}"></textarea>
-                        <button onclick="sendBroadcast()" class="w-full py-4 btn-primary rounded-2xl font-black uppercase text-[11px] tracking-widest">${t('send_all')}</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('system_notif')}</h2>
+                        <textarea id="broadcast-msg" class="text-sm h-40 mb-4" placeholder="${t('notif_placeholder')}"></textarea>
+                        <button onclick="sendBroadcast()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('send_all')}</button>`;
                     break;
                 case 'payment-reminders':
                     html = `
-                        <h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${t('pay_remind_title')}</h2>
-                        <p class="text-[12px] text-slate-300 leading-relaxed mb-6">${t('pay_remind_desc')}</p>
-                        <div class="p-6 bg-black/20 rounded-2xl border border-white/5 shadow-inner mb-6 space-y-2">
-                            <p class="italic text-[11px] text-slate-400 leading-relaxed">"${t('pay_remind_template')}"</p>
-                        </div>
-                        <button onclick="sendPaymentReminders()" class="w-full py-4 btn-primary rounded-2xl font-black uppercase text-[11px] tracking-widest">${t('send_reminders')}</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('pay_remind_title')}</h2>
+                        <p class="text-[11px] text-slate-300 mb-6">${t('pay_remind_desc')}</p>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"${t('pay_remind_template')}"</div>
+                        <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('send_reminders')}</button>`;
                     break;
                 case 'pdf-report-confirm':
                     html = `
@@ -356,29 +332,29 @@ const tg = window.Telegram.WebApp;
                     const canSeeArchive = true; // both residents and privileged can see archive, filtered by backend
                     const canSeePdf = roleLower.includes('director') || roleLower.includes('administrator') || roleLower.includes('engineer');
                     
-                    btns += `<button onclick="toggleArchive()" class="flex-1 bg-white/5 hover:bg-white/10 p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest text-center transition-all ${showingArchive ? 'text-blue-400 border border-blue-400/30' : 'text-slate-400 border border-white/5'}">${showingArchive ? t('active_btn') : t('archive_btn')}</button>`;
+                    btns += `<button onclick="toggleArchive()" class="flex-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl text-[10px] font-black uppercase text-center transition-all ${showingArchive ? 'text-blue-400 border border-blue-400/50' : 'text-slate-300'}">${showingArchive ? t('active_btn') : t('archive_btn')}</button>`;
                     
                     if (canSeePdf) {
-                        btns += `<button onclick="requestPdfReport()" class="flex-1 bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest text-blue-400 text-center transition-all border border-blue-500/20">${t('pdf_report')}</button>`;
+                        btns += `<button onclick="requestPdfReport()" class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 px-3 py-2 rounded-xl text-[10px] font-black uppercase text-blue-400 text-center transition-all border border-blue-500/20">${t('pdf_report')}</button>`;
                     }
                     
                     btns += `</div>`;
                     
-                    html = `<h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${headerTitle}</h2>${btns}<div class="space-y-4 pt-2">${getTasksHtml()}</div>`;
+                    html = `<h2 class="text-xl font-bold mb-4 italic text-blue-400">${headerTitle}</h2>${btns}<div class="space-y-1">${getTasksHtml()}</div>`;
                     break;
                 case 'emergency':
-                    html = `<h2 class="text-2xl font-bold mb-8 italic text-red-500 drop-shadow-md">${t('emergency')}</h2>`;
+                    html = `<h2 class="text-xl font-bold mb-8 italic text-red-500">${t('emergency')}</h2>`;
                     cachedData?.emergency?.forEach(e => {
                         const cleanPhone = String(e.Phone).replace(/[^\d\+]/g, '');
                         html += `
-                            <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-3xl flex justify-between items-center shadow-[inset_0_2px_10px_rgba(239,68,68,0.1)] hover:bg-red-500/15 transition-colors mb-4">
-                                <span class="text-red-400 font-bold text-base ml-2">${e.Name}</span>
-                                <button onclick="window.location.href='tel:${cleanPhone}'" class="bg-gradient-to-r from-red-500 to-red-700 text-white text-[11px] px-6 py-3 rounded-2xl font-black uppercase shadow-[0_4px_12px_rgba(239,68,68,0.3)] active:scale-95 transition-all outline-none">Call</button>
+                            <div class="flex justify-between items-center p-2 bg-red-500/10 border border-red-500/20 rounded-3xl mb-3">
+                                <span class="text-red-400 font-bold text-sm ml-2">${e.Name}</span>
+                                <button onclick="window.location.href='tel:${cleanPhone}'" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase active:bg-red-600">${e.Phone}</button>
                             </div>`;
                     });
                     break;
                 case 'uk':
-                    html = `<h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${t('management')}</h2>`;
+                    html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('management')}</h2>`;
                     cachedData?.management?.forEach(m => {
                         const val = String(m.Value || "").trim();
                         let onClickAction = '';
@@ -386,60 +362,50 @@ const tg = window.Telegram.WebApp;
                         let btnCol = '';
 
                         if (val.includes('@') && val.includes('.')) {
+                            // Email
                             btnTxt = 'Email';
-                            btnCol = 'bg-gradient-to-r from-slate-500 to-slate-600 shadow-[0_4px_12px_rgba(100,116,139,0.3)]';
+                            btnCol = 'bg-slate-600';
                             onClickAction = `window.location.href='mailto:${val}'`;
                         } else if (val.startsWith('@') || val.toLowerCase().includes('t.me/')) {
+                            // Telegram Username / Link
                             const tgUsername = val.replace('@', '').replace('https://t.me/', '').replace('http://t.me/', '').replace('t.me/', '');
                             btnTxt = 'Chat';
-                            btnCol = 'bg-gradient-to-r from-[#0088cc] to-[#005580] shadow-[0_4px_12px_rgba(0,136,204,0.3)]';
+                            btnCol = 'bg-[#0088cc]';
                             onClickAction = `tg.openTelegramLink('https://t.me/${tgUsername}')`;
                         } else {
+                            // Phone
                             const cleanPhone = val.replace(/[^\d\+]/g, '');
                             btnTxt = 'Call';
-                            btnCol = 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-[0_4px_12px_rgba(16,185,129,0.3)]';
+                            btnCol = 'bg-green-600';
                             onClickAction = `window.location.href='tel:${cleanPhone}'`;
                         }
 
                         html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl mb-4 flex justify-between items-center shadow-lg hover:bg-white/10 transition-colors">
-                                <div class="flex flex-col ml-2"><p class="text-[9px] uppercase font-black tracking-[0.2em] text-slate-500 mb-1">${m.Type}</p><span class="font-bold text-base text-white/90 truncate max-w-[160px]">${val}</span></div>
-                                <button onclick="${onClickAction}" class="${btnCol} text-white text-[11px] font-black px-6 py-3 rounded-2xl uppercase active:scale-95 transition-all outline-none">${btnTxt}</button>
+                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
+                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm text-white">${val}</span></div>
+                                <button onclick="${onClickAction}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
                             </div>`;
                     });
                     break;
                 case 'support':
                     html = `
-                        <h2 class="text-2xl font-bold mb-8 italic text-blue-400 drop-shadow-md">${t('support')}</h2>
-                        <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="action-btn-secondary hover:border-blue-500/30 border-white/5 shadow-lg">
-                            <div>
-                                <span class="btn-label-base text-slate-300 block mb-1">Privacy Policy</span>
-                                <span class="text-[9px] text-slate-500 font-mono text-left block">Read our terms of service</span>
-                            </div>
-                            <span class="text-blue-500/50 text-xl ml-4">📄</span>
+                        <h2 class="text-xl font-bold mb-8 italic text-blue-400">${t('support')}</h2>
+                        <button onclick="tg.openLink('https://docs.google.com/document/d/1jg6xLSmwJpXoUuiU0Mf5Cj6mZ4U7YDTWTmbsTpwi4_0/edit?usp=sharing')" class="action-btn-secondary">
+                            <span class="btn-label-base text-slate-300">Privacy Policy</span>
+                            <span class="text-slate-500">📄</span>
                         </button>`;
                     break;
                 case 'edit-profile':
                     html = `
-                        <h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${t('edit_profile')}</h2>
-                        <div class="space-y-4 mb-4">
-                            <input type="text" id="whatsapp-input" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-3xl placeholder-slate-500 text-white shadow-inner focus:border-blue-500/50 transition-colors" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
-                            <input type="email" id="email-input" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-3xl placeholder-slate-500 text-white shadow-inner focus:border-blue-500/50 transition-colors" placeholder="Email" value="${cachedData?.email || ""}">
-                        </div>
-                        <button onclick="saveProfile()" class="w-full py-4 mt-6 btn-primary rounded-3xl font-black uppercase text-[12px] tracking-widest shadow-[0_4px_15px_rgba(0,136,204,0.3)]">${t('save_changes')}</button>`;
+                        <h2 class="text-xl font-bold mb-6 italic">${t('edit_profile')}</h2>
+                        <input type="text" id="whatsapp-input" class="mb-3 text-sm" placeholder="WhatsApp" value="${cachedData?.whatsapp || ""}">
+                        <input type="email" id="email-input" class="mb-4 text-sm" placeholder="Email" value="${cachedData?.email || ""}">
+                        <button onclick="saveProfile()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700">${t('save_changes')}</button>`;
                     break;
             }
 
             body.innerHTML = html || `<p class="text-center text-slate-500 py-10">Empty</p>`;
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
-            
-            overlay.classList.remove('hidden');
-            // Allow animation to apply after setting display block
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
+            document.getElementById('modal-overlay').style.display = 'flex';
         }
 
         const saveProfile = () => {
@@ -450,16 +416,8 @@ const tg = window.Telegram.WebApp;
         };
 
         function closeModal() { 
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
-            
-            overlay.classList.add('opacity-0');
-            content.classList.add('translate-y-full');
-            
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                tg.MainButton.hide();
-            }, 300);
+            document.getElementById('modal-overlay').style.display = 'none'; 
+            tg.MainButton.hide();
         }
 
         // --- SUPERADMIN LOGIC ---
@@ -483,17 +441,16 @@ const tg = window.Telegram.WebApp;
                     data.complexes.forEach(c => {
                         const statusColor = String(c.status).toLowerCase() === 'active' ? 'text-green-500' : 'text-red-500';
                         listEl.innerHTML += `
-                            <div onclick='openSuperadminEdit(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="bg-white/5 border border-white/10 rounded-3xl p-5 flex justify-between items-center cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all shadow-lg relative overflow-hidden group">
-                                <div class="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/0 to-purple-500/5 group-hover:to-purple-500/10 transition-colors"></div>
-                                <div class="flex items-center space-x-4 relative z-10 w-full">
-                                    ${c.logo_url ? `<img src="${c.logo_url}" class="w-12 h-12 rounded-2xl object-cover shadow-md border border-white/10">` : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center text-xl shadow-md">🏢</div>`}
-                                    <div class="flex-1">
-                                        <p class="font-bold text-lg text-white mb-0.5 tracking-tight">${c.name || 'Unnamed'}</p>
-                                        <p class="text-[10px] text-gray-400 font-mono mb-1.5 uppercase tracking-widest">${c.city || 'Город не указан'}</p>
-                                        <p class="text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 inline-block rounded-md bg-black/20 border ${statusColor === 'text-green-500' ? 'border-green-500/30 text-green-400' : 'border-red-500/30 text-red-400'} shadow-inner">${c.status || 'Inactive'}</p>
+                            <div onclick='openSuperadminEdit(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="glass-card p-4 flex justify-between items-center cursor-pointer active:bg-white/5 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    ${c.logo_url ? `<img src="${c.logo_url}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">🏢</div>`}
+                                    <div>
+                                        <p class="font-bold text-sm text-white">${c.name || 'Unnamed'}</p>
+                                        <p class="text-[9px] text-gray-400 mb-1">${c.city || 'Город не указан'}</p>
+                                        <p class="text-[8px] font-black uppercase tracking-wider ${statusColor}">${c.status || 'Inactive'}</p>
                                     </div>
-                                    <span class="text-purple-400/50 text-xl group-hover:text-purple-400 group-hover:translate-x-1 transition-all">➔</span>
                                 </div>
+                                <span class="text-slate-500 text-xs">✎</span>
                             </div>
                         `;
                     });
@@ -526,10 +483,10 @@ const tg = window.Telegram.WebApp;
                 document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
                 
-                rolesBtn.style.display = 'flex';
-                contactsBtn.style.display = 'flex';
-                servicesBtn.style.display = 'flex';
-                checklistsBtn.style.display = 'flex';
+                rolesBtn.style.display = 'block';
+                contactsBtn.style.display = 'block';
+                servicesBtn.style.display = 'block';
+                checklistsBtn.style.display = 'block';
                 
                 if (complex.logo_url) {
                     preview.src = complex.logo_url;
@@ -606,16 +563,9 @@ const tg = window.Telegram.WebApp;
                 return;
             }
             
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
             const body = document.getElementById('modal-body');
             body.innerHTML = `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">Загрузка...</p>`;
-            
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
+            document.getElementById('modal-overlay').style.display = 'flex';
             
             await fetchAdminContacts(comp_id);
         }
@@ -628,19 +578,19 @@ const tg = window.Telegram.WebApp;
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
                 
-                let html = `<h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">Контакты</h2>
-                            <div class="space-y-4 mb-8" id="admin-contacts-list">`;
+                let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Контакты (Экстренные/УК)</h2>
+                            <div class="space-y-3 mb-6" id="admin-contacts-list">`;
                 
                 if (data.contacts && data.contacts.length > 0) {
                     data.contacts.forEach(c => {
                         html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl flex justify-between items-center shadow-lg hover:bg-white/10 transition-all">
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
                                 <div>
-                                    <p class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em] mb-1">${c.is_emergency ? 'Экстренный 🚨' : 'Управление 🏢'}</p>
-                                    <p class="text-white text-base font-bold">${c.name || c.name_or_type || 'N/A'}</p>
-                                    <p class="text-slate-400 text-sm font-mono mt-0.5">${c.value || c.contact_value || 'N/A'}</p>
+                                    <p class="text-[10px] font-black uppercase text-slate-500">${c.is_emergency ? 'Экстренный 🚨' : 'Управление 🏢'}</p>
+                                    <p class="text-white text-sm font-bold">${c.name || c.name_or_type || 'N/A'}</p>
+                                    <p class="text-slate-400 text-xs">${c.value || c.contact_value || 'N/A'}</p>
                                 </div>
-                                <button onclick="deleteAdminContact('${c.id}', '${comp_id}')" class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black uppercase px-4 py-3 rounded-2xl active:bg-red-500/30 transition-colors shadow-inner">Del</button>
+                                <button onclick="deleteAdminContact('${c.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40">Del</button>
                             </div>
                         `;
                     });
@@ -650,15 +600,15 @@ const tg = window.Telegram.WebApp;
                 
                 html += `</div>
                 
-                <h3 class="text-lg font-bold mb-4 italic text-blue-400">Добавить новый</h3>
-                <div class="space-y-4">
-                    <input type="text" id="add-contact-name" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl placeholder-slate-500 text-white shadow-inner" placeholder="Название (например: Электрик)">
-                    <input type="text" id="add-contact-value" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl placeholder-slate-500 text-white shadow-inner" placeholder="Номер или @юзернейм">
-                    <label class="flex items-center space-x-3 p-3 bg-white/5 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all">
-                        <input type="checkbox" id="add-contact-emergency" class="w-5 h-5 rounded-md appearance-none border-2 border-white/20 checked:bg-red-500 checked:border-red-500 transition-colors focus:outline-none"> 
-                        <span class="text-sm font-bold text-slate-300">Экстренный вызов? 🚨</span>
+                <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить новый</h3>
+                <div class="space-y-3">
+                    <input type="text" id="add-contact-name" class="text-sm" placeholder="Название (например: Электрик)">
+                    <input type="text" id="add-contact-value" class="text-sm" placeholder="Номер или @юзернейм">
+                    <label class="flex items-center space-x-2 text-sm text-slate-300 font-bold ml-1 pt-1">
+                        <input type="checkbox" id="add-contact-emergency" class="w-4 h-4 rounded appearance-none border border-white/20 checked:bg-red-500 checked:border-red-500"> 
+                        <span>Экстренный вызов? 🚨</span>
                     </label>
-                    <button onclick="saveAdminContact('${comp_id}')" class="w-full py-4 mt-4 btn-primary rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-lg">ДОБАВИТЬ</button>
+                    <button onclick="saveAdminContact('${comp_id}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">ДОБАВИТЬ</button>
                 </div>`;
                 
                 document.getElementById('modal-body').innerHTML = html;
@@ -737,16 +687,9 @@ const tg = window.Telegram.WebApp;
                 return;
             }
             
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
             const body = document.getElementById('modal-body');
             body.innerHTML = `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">Загрузка...</p>`;
-            
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
+            document.getElementById('modal-overlay').style.display = 'flex';
             
             await fetchAdminItems(comp_id, type);
         }
@@ -770,20 +713,20 @@ const tg = window.Telegram.WebApp;
                         : data.items.filter(i => i.area_object && i.area_object.trim() !== '');
                 }
                 
-                let html = `<h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">${title}</h2>
-                            <div class="space-y-4 mb-8" id="admin-items-list">`;
+                let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${title}</h2>
+                            <div class="space-y-3 mb-6" id="admin-items-list">`;
                 
                 if (filteredItems.length > 0) {
                     filteredItems.forEach(i => {
                         const displayName = isServices ? i.name : i.area_object;
-                        const desc = isServices && i.description ? `<p class="text-slate-400 text-xs font-mono mt-0.5">${i.description}</p>` : '';
+                        const desc = isServices && i.description ? `<p class="text-slate-400 text-xs mt-1">${i.description}</p>` : '';
                         html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl flex justify-between items-center shadow-lg hover:bg-white/10 transition-all">
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
                                 <div>
-                                    <p class="text-white text-base font-bold">${displayName}</p>
+                                    <p class="text-white text-sm font-bold">${displayName}</p>
                                     ${desc}
                                 </div>
-                                <button onclick="deleteAdminItem('${i.id}', '${comp_id}', '${type}')" class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black uppercase px-4 py-3 rounded-2xl active:bg-red-500/30 transition-colors shadow-inner shrink-0 ml-2">Del</button>
+                                <button onclick="deleteAdminItem('${i.id}', '${comp_id}', '${type}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Del</button>
                             </div>
                         `;
                     });
@@ -793,11 +736,11 @@ const tg = window.Telegram.WebApp;
                 
                 html += `</div>
                 
-                <h3 class="text-lg font-bold mb-4 italic text-blue-400">Добавить</h3>
-                <div class="space-y-4">
-                    <input type="text" id="add-item-name" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl placeholder-slate-500 text-white shadow-inner" placeholder="${addPlaceholder}">
-                    ${isServices ? `<input type="text" id="add-item-desc" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl placeholder-slate-500 text-white shadow-inner" placeholder="Описание (необязательно, например: 15 EUR/час)">` : ''}
-                    <button onclick="saveAdminItem('${comp_id}', '${type}')" class="w-full py-4 mt-4 btn-primary rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-lg">ДОБАВИТЬ</button>
+                <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить</h3>
+                <div class="space-y-3">
+                    <input type="text" id="add-item-name" class="text-sm" placeholder="${addPlaceholder}">
+                    ${isServices ? `<input type="text" id="add-item-desc" class="text-sm" placeholder="Описание (необязательно, например: 15 EUR/час)">` : ''}
+                    <button onclick="saveAdminItem('${comp_id}', '${type}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">ДОБАВИТЬ</button>
                 </div>`;
                 
                 document.getElementById('modal-body').innerHTML = html;
@@ -876,16 +819,9 @@ const tg = window.Telegram.WebApp;
                 return;
             }
             
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
             const body = document.getElementById('modal-body');
             body.innerHTML = `<p class="text-center text-slate-500 py-10 uppercase text-[9px] font-black tracking-widest">Загрузка...</p>`;
-            
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
+            document.getElementById('modal-overlay').style.display = 'flex';
             
             await fetchAdminRoles(comp_id);
         }
@@ -898,20 +834,20 @@ const tg = window.Telegram.WebApp;
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
                 
-                let html = `<h2 class="text-2xl font-bold mb-6 italic text-blue-400 drop-shadow-md">Назначение ролей</h2>
-                            <div class="space-y-4 mb-8" id="admin-roles-list">`;
+                let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">Назначение ролей</h2>
+                            <div class="space-y-3 mb-6" id="admin-roles-list">`;
                 
                 if (data.roles && data.roles.length > 0) {
                     data.roles.forEach(r => {
                         const displayName = r.full_name || r.username || `User ${r.id}`;
                         const displayApt = r.apt ? ` (Апт: ${r.apt})` : '';
                         html += `
-                            <div class="p-4 bg-white/5 border border-white/10 rounded-3xl flex justify-between items-center shadow-lg hover:bg-white/10 transition-all">
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
                                 <div>
-                                    <p class="text-white text-base font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500 font-normal">${displayApt}</span></p>
-                                    <p class="text-[10px] uppercase font-black text-slate-400 mt-1 tracking-widest">@${r.username || 'unknown'} <span class="mx-1 text-slate-600">•</span> <span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20">${r.role || 'user'}</span></p>
+                                    <p class="text-white text-sm font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500">${displayApt}</span></p>
+                                    <p class="text-[10px] uppercase font-black text-slate-400 mt-1">@${r.username || 'unknown'} • Роль: <span class="text-blue-400">${r.role || 'user'}</span></p>
                                 </div>
-                                <button onclick="deleteAdminRole('${r.id}', '${comp_id}')" class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black uppercase px-4 py-3 rounded-2xl active:bg-red-500/30 transition-colors shadow-inner shrink-0 ml-2">Отвязать</button>
+                                <button onclick="deleteAdminRole('${r.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Отвязать</button>
                             </div>
                         `;
                     });
@@ -921,21 +857,19 @@ const tg = window.Telegram.WebApp;
                 
                 html += `</div>
                 
-                <div class="p-5 bg-white/5 border border-white/10 rounded-3xl mt-4">
-                    <h3 class="text-lg font-bold mb-4 italic text-blue-400">Добавить / Изменить роль</h3>
-                    <div class="space-y-4">
-                        <input type="text" id="add-role-username" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl placeholder-slate-500 text-white shadow-inner" placeholder="Username (без @) или ID">
-                        <select id="add-role-select" class="w-full bg-black/20 border border-white/10 text-sm p-4 rounded-2xl text-white shadow-inner appearance-none cursor-pointer">
-                            <option value="resident">Resident / Жилец</option>
-                            <option value="master">Master / Мастер</option>
-                            <option value="administrator">Administrator / Администратор</option>
-                            <option value="accountant">Accountant / Бухгалтер</option>
-                            <option value="engineer">Engineer / Инженер</option>
-                            <option value="director">Director / Директор</option>
-                        </select>
-                        <button onclick="saveAdminRole('${comp_id}')" class="w-full py-4 mt-2 btn-primary rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-lg">СОХРАНИТЬ</button>
-                        <p class="text-[10px] text-slate-500 text-center leading-relaxed mt-4 italic">Если пользователя нет в базе (он еще не заходил в бота), будет создана пустая запись, которая привяжется к нему, когда он зайдет с этим username.</p>
-                    </div>
+                <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить / Изменить роль</h3>
+                <div class="space-y-3">
+                    <input type="text" id="add-role-username" class="text-sm bg-black/20 border border-white/10 p-3 rounded-xl w-full" placeholder="Username (без @) или ID">
+                    <select id="add-role-select" class="text-sm bg-[#1A1A1A] text-white border border-white/10 p-3 rounded-xl w-full focus:outline-none focus:border-blue-500">
+                        <option value="resident">Resident / Жилец</option>
+                        <option value="master">Master / Мастер</option>
+                        <option value="administrator">Administrator / Администратор</option>
+                        <option value="accountant">Accountant / Бухгалтер</option>
+                        <option value="engineer">Engineer / Инженер</option>
+                        <option value="director">Director / Директор</option>
+                    </select>
+                    <button onclick="saveAdminRole('${comp_id}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">СОХРАНИТЬ</button>
+                    <p class="text-[9px] text-slate-500 text-center leading-tight mt-2">Если пользователя нет в базе (он еще не заходил в бота), будет создана пустая запись, которая привяжется к нему, когда он зайдет с этим username.</p>
                 </div>`;
                 
                 document.getElementById('modal-body').innerHTML = html;
