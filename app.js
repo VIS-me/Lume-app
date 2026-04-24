@@ -137,6 +137,7 @@ const tg = window.Telegram.WebApp;
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
+                    document.getElementById('admin-panel-btn')?.classList.remove('hidden');
                 }
                 
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
@@ -464,9 +465,17 @@ const tg = window.Telegram.WebApp;
 
         let selectedLogoFile = null;
 
-        function openSuperadminEdit(complex) {
+        let returnPageAfterEdit = 'superadmin';
+
+        function openSuperadminEdit(complex, source = 'superadmin') {
+            returnPageAfterEdit = source;
             switchPage('superadmin-edit');
             const title = document.getElementById('sa-edit-title');
+            const backBtn = document.getElementById('sa-edit-back-btn');
+            
+            if (backBtn) {
+                backBtn.innerText = source === 'tasks' ? "< НАЗАД К ЗАДАЧАМ" : "< НАЗАД К СПИСКУ";
+            }
             
             selectedLogoFile = null;
             document.getElementById('sa-edit-logo-input').value = "";
@@ -476,6 +485,44 @@ const tg = window.Telegram.WebApp;
             const servicesBtn = document.getElementById('sa-edit-services-btn');
             const checklistsBtn = document.getElementById('sa-edit-checklists-btn');
             
+            const saStatusCard = document.getElementById('sa-edit-status').closest('.glass-card');
+            const saNameCard = document.getElementById('sa-edit-name').parentElement;
+            const saCityCard = document.getElementById('sa-edit-city').parentElement;
+            const saLogoCard = document.getElementById('sa-edit-logo-input').closest('.glass-card');
+            const saveBtn = document.querySelector('button[onclick="saveSuperadminComplex()"]');
+
+            const roleLower = document.getElementById('profile-role').innerText.toLowerCase();
+
+            // Reset visibility to defaults (for superadmin)
+            saStatusCard.style.display = roleLower.includes('superadmin') ? 'flex' : 'none';
+            saNameCard.style.display = 'block';
+            saCityCard.style.display = 'block';
+            saLogoCard.style.display = 'block';
+            saveBtn.style.display = 'block';
+            rolesBtn.style.display = 'block';
+            contactsBtn.style.display = 'block';
+            servicesBtn.style.display = 'block';
+            checklistsBtn.style.display = 'block';
+
+            // Role-based restrictions logic when opening from 'tasks' page
+            if (source === 'tasks') {
+                if (roleLower.includes('engineer')) {
+                    // Engineers can ONLY edit checklists
+                    saStatusCard.style.display = 'none';
+                    saNameCard.style.display = 'none';
+                    saCityCard.style.display = 'none';
+                    saLogoCard.style.display = 'none';
+                    saveBtn.style.display = 'none';
+                    rolesBtn.style.display = 'none';
+                    contactsBtn.style.display = 'none';
+                    servicesBtn.style.display = 'none';
+                    checklistsBtn.style.display = 'block';
+                } else if (roleLower.includes('director') || roleLower.includes('administrator')) {
+                    // Director/Admin can edit anything EXCEPT checklists
+                    checklistsBtn.style.display = 'none';
+                }
+            }
+            
             if (complex) {
                 title.innerText = "Редактирование: " + complex.name;
                 document.getElementById('sa-edit-id').value = complex.id;
@@ -483,10 +530,11 @@ const tg = window.Telegram.WebApp;
                 document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
                 
-                rolesBtn.style.display = 'block';
-                contactsBtn.style.display = 'block';
-                servicesBtn.style.display = 'block';
-                checklistsBtn.style.display = 'block';
+                rolesBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
+                contactsBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
+                servicesBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
+                
+                checklistsBtn.style.display = (source === 'tasks' && (roleLower.includes('director') || roleLower.includes('administrator')) && !roleLower.includes('engineer')) ? 'none' : 'block';
                 
                 if (complex.logo_url) {
                     preview.src = complex.logo_url;
@@ -517,7 +565,34 @@ const tg = window.Telegram.WebApp;
         }
 
         function closeSuperadminEdit() {
-            switchPage('superadmin');
+            switchPage(returnPageAfterEdit);
+            fetchSuperadminData();
+        }
+
+        async function openAdminPanel() {
+            tg.MainButton.hide();
+            // Fetch the complex by ID from admin API
+            try {
+                const title = document.getElementById('sa-edit-title');
+                title.innerText = "Загрузка...";
+                switchPage('superadmin-edit'); // temporarily show it empty/loading
+                
+                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`);
+                const data = await response.json();
+                
+                if (data.complexes) {
+                    const currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
+                    if (currentComplex) {
+                        openSuperadminEdit(currentComplex, 'tasks');
+                    } else {
+                        tg.showAlert("Complex access error");
+                        switchPage('tasks');
+                    }
+                }
+            } catch(e) {
+                tg.showAlert("API Error");
+                switchPage('tasks');
+            }
         }
 
         async function saveSuperadminComplex() {
@@ -548,7 +623,11 @@ const tg = window.Telegram.WebApp;
                 btn.setText("УСПЕШНО").setParams({ color: "#22c55e" });
                 setTimeout(() => {
                     btn.hide();
-                    openSuperadmin(); // reload list
+                    if (returnPageAfterEdit === 'tasks') {
+                        switchPage('tasks');
+                    } else {
+                        openSuperadmin(); // reload list
+                    }
                 }, 1000);
             } catch (err) {
                 tg.showAlert("Ошибка: " + err.message);
