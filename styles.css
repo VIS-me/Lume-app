@@ -11,8 +11,9 @@
         }
         .page { display: none; }
         .page.active { display: block; }
-        .nav-btn { color: #475569; transition: all 0.2s; }
-        .nav-btn.active { color: #0088cc; }
+        .nav-btn { color: #475569; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-btn.active { color: #0088cc; transform: translateY(-2px); }
+        .nav-btn.active svg { filter: drop-shadow(0 4px 6px rgba(0, 136, 204, 0.15)); }
 
         input, textarea, select {
             background: rgba(255, 255, 255, 0.05);
