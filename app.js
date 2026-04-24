@@ -87,19 +87,21 @@ const tg = window.Telegram.WebApp;
         }
 
         function updateTheme() {
-            if (tg.colorScheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
             try {
-                const bgColor = tg.themeParams.bg_color || (tg.colorScheme === 'dark' ? '#0b0c10' : '#ffffff');
+                if (tg.colorScheme === 'light') {
+                    document.documentElement.classList.add('theme-light');
+                } else {
+                    document.documentElement.classList.remove('theme-light');
+                }
+                const bgColor = tg.themeParams.bg_color || (tg.colorScheme === 'light' ? '#ffffff' : '#0b0c10');
                 tg.setHeaderColor(bgColor);
                 tg.setBackgroundColor(bgColor);
             } catch(e) {}
         }
         updateTheme();
-        try { tg.onEvent('themeChanged', updateTheme); } catch(e) {}
+        if (tg.onEvent) {
+            tg.onEvent('themeChanged', updateTheme);
+        }
 
         async function loadData() {
             applyStaticTranslations();
