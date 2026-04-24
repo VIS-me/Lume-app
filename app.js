@@ -577,7 +577,9 @@ const tg = window.Telegram.WebApp;
                 title.innerText = "Загрузка...";
                 switchPage('superadmin-edit'); // temporarily show it empty/loading
                 
-                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`);
+                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const data = await response.json();
                 
                 if (data.complexes) {
