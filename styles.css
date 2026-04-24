@@ -1,51 +1,27 @@
 :root {
-            --bg-color: var(--tg-theme-bg-color, #0b0c10);
-            --text-main: var(--tg-theme-text-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #94a3b8);
-            --accent: var(--tg-theme-button-color, #0088cc);
-            --accent-text: var(--tg-theme-button-text-color, #ffffff);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
-            --link-color: var(--tg-theme-link-color, var(--accent));
-            
-            --glass-bg: rgba(128, 128, 128, 0.08);
-            --glass-border: rgba(128, 128, 128, 0.15);
+            --bg-color: #0b0c10;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --glass-blur: 24px;
-            --accent-glow: rgba(128, 128, 128, 0.05);
-
-            --nav-bg: var(--tg-theme-bg-color, #0b0c10);
-            --modal-bg: var(--tg-theme-bg-color, #0f111a);
-            
-            --input-bg: var(--tg-theme-secondary-bg-color, rgba(128, 128, 128, 0.1));
-            --input-border: rgba(128, 128, 128, 0.2);
-            --input-text: var(--tg-theme-text-color, #ffffff);
+            --accent: #0088cc;
+            --accent-glow: rgba(0, 136, 204, 0.15);
+            --page-bg: #0b0c10;
+            --text-main: #ffffff;
+            --nav-bg: rgba(11, 12, 16, 0.85);
+            --modal-bg: #0f111a;
+            --input-bg: rgba(0, 0, 0, 0.2);
+            --input-border: rgba(255, 255, 255, 0.08);
+            --input-text: #ffffff;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: #0b0c10;
             background-image: 
-                radial-gradient(circle at 15% 50%, var(--accent-glow), transparent 25%),
-                radial-gradient(circle at 85% 30%, var(--accent-glow), transparent 25%);
+                radial-gradient(circle at 15% 50%, rgba(0, 136, 204, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(88, 86, 214, 0.08), transparent 25%);
             background-attachment: fixed;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Dynamically adapt Tailwind structural classes using CSS vars */
-        .text-white { color: var(--text-main) !important; }
-        .text-slate-200, .text-slate-300 { color: var(--text-main) !important; opacity: 0.9; }
-        .text-slate-400, .text-slate-500, .text-slate-600 { color: var(--hint-color) !important; }
-        .text-blue-400, .text-blue-500, .text-purple-400, .text-purple-500, .text-\[\#0088cc\] { color: var(--accent) !important; }
-        
-        .bg-white\/5 { background-color: rgba(128, 128, 128, 0.05) !important; }
-        .bg-white\/10 { background-color: rgba(128, 128, 128, 0.1) !important; }
-        .border-white\/10 { border-color: rgba(128, 128, 128, 0.15) !important; }
-        .border-white\/5 { border-color: rgba(128, 128, 128, 0.1) !important; }
-        .bg-black\/20, .bg-black\/30 { background-color: var(--input-bg) !important; }
-        .bg-\[\#0b0c10\]\/95 { background-color: var(--bg-color) !important; }
-
-
-
-        .glass-card {
+        }        .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(var(--glass-blur));
             -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -55,7 +31,7 @@
         }
         
         #modal-overlay {
-            background: var(--nav-bg);
+            background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             display: none;
@@ -65,10 +41,10 @@
         .page.active { display: block; transform: translateY(0); opacity: 1; }
         
         .nav-bar {
-            background: var(--nav-bg);
+            background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         
         .nav-btn { color: #64748b; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -76,11 +52,11 @@
         .nav-btn.active svg { filter: drop-shadow(0 4px 6px var(--accent-glow)); }
 
         input, textarea, select {
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.25rem;
             padding: 1.2rem;
-            color: var(--input-text);
+            color: white;
             width: 100%;
             outline: none;
             transition: all 0.3s ease;
