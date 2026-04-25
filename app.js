@@ -1,6 +1,16 @@
 const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
+
+        function applyTheme() {
+            if (tg.colorScheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+        applyTheme();
+        tg.onEvent('themeChanged', applyTheme);
         
         // Setup secure fetch wrapper to always pass initData to the backend
         const originalFetch = window.fetch;
@@ -208,7 +218,7 @@ const tg = window.Telegram.WebApp;
             return filtered.map(o => {
                 const sVal = String(o.status || "").toLowerCase();
                 const isInProgress = sVal.includes('progress') || sVal.includes('работе');
-                const sClass = showingArchive ? 'bg-white/5 text-slate-600' : (isInProgress ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500');
+                const sClass = showingArchive ? 'theme-glass-btn text-slate-600' : (isInProgress ? 'bg-blue-500/10 text-blue-400' : 'theme-glass-btn text-slate-500');
                 
                 let archiveMeta = '';
                 if (showingArchive) {
@@ -217,7 +227,7 @@ const tg = window.Telegram.WebApp;
                 }
                 
                 return `
-                    <div class="flex flex-col p-4 bg-white/5 rounded-2xl mb-2 border border-white/5">
+                    <div class="flex flex-col p-4 theme-glass-btn rounded-2xl mb-2">
                         <div class="flex justify-between items-start">
                             <div class="flex flex-col flex-1 mr-2">
                                 ${(isStaff || showingArchive) ? `<span class="text-[8px] text-slate-500 font-mono mb-1">${t('apartment')}: ${o.apt || '??'}</span>` : ''}
@@ -313,7 +323,7 @@ const tg = window.Telegram.WebApp;
                     html = `
                         <h2 class="text-xl font-bold mb-6 italic text-blue-400">${t('pay_remind_title')}</h2>
                         <p class="text-[11px] text-slate-300 mb-6">${t('pay_remind_desc')}</p>
-                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 mb-6 italic text-[10px] text-slate-400">"${t('pay_remind_template')}"</div>
+                        <div class="p-4 theme-glass-btn rounded-2xl mb-6 italic text-[10px] text-slate-400">"${t('pay_remind_template')}"</div>
                         <button onclick="sendPaymentReminders()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-blue-700 transition-colors">${t('send_reminders')}</button>`;
                     break;
                 case 'pdf-report-confirm':
@@ -340,7 +350,7 @@ const tg = window.Telegram.WebApp;
                     } else {
                         debtFiltered.forEach(d => {
                             html += `
-                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center p-4 theme-glass-btn rounded-2xl">
                                 <div class="flex flex-col"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">${t('apartment')}</p><span class="text-sm font-bold text-slate-200">${d.Apartment || d.apt || '--'}</span></div>
                                 <div class="text-right"><p class="text-[8px] uppercase font-black text-slate-500 mb-1">${t('total')}</p><span class="text-sm font-black text-red-400">${d.Total_Debt} ${cachedData?.finance?.currency || '€'}</span></div>
                             </div>`;
@@ -404,8 +414,8 @@ const tg = window.Telegram.WebApp;
                         }
 
                         html += `
-                            <div class="p-2 bg-white/5 border border-white/10 rounded-3xl mb-3 flex justify-between items-center">
-                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm text-white">${val}</span></div>
+                            <div class="p-2 theme-glass-btn rounded-3xl mb-3 flex justify-between items-center">
+                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm theme-text-main">${val}</span></div>
                                 <button onclick="${onClickAction}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
                             </div>`;
                     });
@@ -464,11 +474,11 @@ const tg = window.Telegram.WebApp;
                     data.complexes.forEach(c => {
                         const statusColor = String(c.status).toLowerCase() === 'active' ? 'text-green-500' : 'text-red-500';
                         listEl.innerHTML += `
-                            <div onclick='openSuperadminEdit(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="glass-card p-4 flex justify-between items-center cursor-pointer active:bg-white/5 transition-colors">
+                            <div onclick='openSuperadminEdit(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="glass-card p-4 flex justify-between items-center cursor-pointer active:theme-glass-btn transition-colors">
                                 <div class="flex items-center space-x-3">
                                     ${c.logo_url ? `<img src="${c.logo_url}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">🏢</div>`}
                                     <div>
-                                        <p class="font-bold text-sm text-white">${c.name || 'Unnamed'}</p>
+                                        <p class="font-bold text-sm theme-text-main">${c.name || 'Unnamed'}</p>
                                         <p class="text-[9px] text-gray-400 mb-1">${c.city || 'Город не указан'}</p>
                                         <p class="text-[8px] font-black uppercase tracking-wider ${statusColor}">${c.status || 'Inactive'}</p>
                                     </div>
@@ -710,10 +720,10 @@ const tg = window.Telegram.WebApp;
                 if (data.contacts && data.contacts.length > 0) {
                     data.contacts.forEach(c => {
                         html += `
-                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
+                            <div class="p-3 theme-glass-btn rounded-2xl flex justify-between items-center">
                                 <div>
                                     <p class="text-[10px] font-black uppercase text-slate-500">${c.is_emergency ? 'Экстренный 🚨' : 'Управление 🏢'}</p>
-                                    <p class="text-white text-sm font-bold">${c.name || c.name_or_type || 'N/A'}</p>
+                                    <p class="theme-text-main text-sm font-bold">${c.name || c.name_or_type || 'N/A'}</p>
                                     <p class="text-slate-400 text-xs">${c.value || c.contact_value || 'N/A'}</p>
                                 </div>
                                 <button onclick="deleteAdminContact('${c.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40">Del</button>
@@ -847,9 +857,9 @@ const tg = window.Telegram.WebApp;
                         const displayName = isServices ? i.name : i.area_object;
                         const desc = isServices && i.description ? `<p class="text-slate-400 text-xs mt-1">${i.description}</p>` : '';
                         html += `
-                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
+                            <div class="p-3 theme-glass-btn rounded-2xl flex justify-between items-center">
                                 <div>
-                                    <p class="text-white text-sm font-bold">${displayName}</p>
+                                    <p class="theme-text-main text-sm font-bold">${displayName}</p>
                                     ${desc}
                                 </div>
                                 <button onclick="deleteAdminItem('${i.id}', '${comp_id}', '${type}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Del</button>
@@ -968,9 +978,9 @@ const tg = window.Telegram.WebApp;
                         const displayName = r.full_name || r.username || `User ${r.id}`;
                         const displayApt = r.apt ? ` (Апт: ${r.apt})` : '';
                         html += `
-                            <div class="p-3 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
+                            <div class="p-3 theme-glass-btn rounded-2xl flex justify-between items-center">
                                 <div>
-                                    <p class="text-white text-sm font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500">${displayApt}</span></p>
+                                    <p class="theme-text-main text-sm font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500">${displayApt}</span></p>
                                     <p class="text-[10px] uppercase font-black text-slate-400 mt-1">@${r.username || 'unknown'} • Роль: <span class="text-blue-400">${r.role || 'user'}</span></p>
                                 </div>
                                 <button onclick="deleteAdminRole('${r.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Отвязать</button>
@@ -986,7 +996,7 @@ const tg = window.Telegram.WebApp;
                 <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить / Изменить роль</h3>
                 <div class="space-y-3">
                     <input type="text" id="add-role-username" class="text-sm bg-black/20 border border-white/10 p-3 rounded-xl w-full" placeholder="Username (без @) или ID">
-                    <select id="add-role-select" class="text-sm bg-[#1A1A1A] text-white border border-white/10 p-3 rounded-xl w-full focus:outline-none focus:border-blue-500">
+                    <select id="add-role-select" class="text-sm border border-white/10 p-3 rounded-xl w-full focus:outline-none focus:border-blue-500">
                         <option value="resident">Resident / Жилец</option>
                         <option value="master">Master / Мастер</option>
                         <option value="administrator">Administrator / Администратор</option>
