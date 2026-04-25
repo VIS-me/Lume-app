@@ -15,82 +15,102 @@
         position: fixed;
         top: 0; left: 0;
         width: 100vw; height: 100vh;
-        background-color: var(--bg-color, #1a202c);
+        background-color: #101217; /* Глубокий темный фон */
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 99999;
         transition: opacity 0.5s ease-out;
       }
-      [data-theme="light"] #splash-screen {
-        background-color: var(--bg-color, #ffffff);
-      }
-      @media (prefers-color-scheme: light) {
-        #splash-screen { background-color: var(--bg-color, #ffffff); }
-      }
-      @media (prefers-color-scheme: dark) {
-        #splash-screen { background-color: var(--bg-color, #1a202c); }
-      }
     
-      .lume-logo-svg {
-        width: 180px;
-        height: 180px;
-        animation: lumePulse 2.5s ease-in-out infinite;
+      .lume-splash-container {
+        width: 250px;
+        height: 250px;
+        filter: drop-shadow(0 0 12px rgba(52, 213, 242, 0.5));
+        animation: lumePulseContainer 3s ease-in-out infinite;
       }
-    
-      @keyframes lumePulse {
-        0%, 100% { opacity: 0.6; transform: scale(0.97); }
-        50% { opacity: 1; transform: scale(1.03); }
+
+      @keyframes lumePulseContainer {
+        0%, 100% { transform: scale(0.98); opacity: 0.9; }
+        50% { transform: scale(1.02); opacity: 1; }
       }
-    
-      /* Скрываем всё остальное, пока виден splash */
+
+      .lume-circle {
+        fill: none;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        /* Создаем эффект разрыва кольца снизу */
+        stroke-dasharray: 240 60; 
+        stroke-dashoffset: -30;
+      }
+
+      .lume-star {
+        fill: #34D5F2;
+        animation: lumeStarBlink 3s ease-in-out infinite;
+      }
+
+      @keyframes lumeStarBlink {
+        0%, 100% { opacity: 0.2; transform: scale(0.7); }
+        50% { opacity: 1; transform: scale(1.2); }
+      }
+
       #splash-screen:not(.fade-out) ~ * {
         display: none !important;
       }
     </style>
     
     <div id="splash-screen">
-      <svg viewBox="0 0 100 100" class="lume-logo-svg">
+      <svg viewBox="0 0 100 100" class="lume-splash-container">
         <defs>
-          <linearGradient id="lume-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#339AF0"/>
-            <stop offset="100%" stop-color="#179CDE"/>
+          <linearGradient id="lume-neon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#34D5F2"/>
+            <stop offset="100%" stop-color="#3A6AF2"/>
           </linearGradient>
         </defs>
-        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#lume-grad)" stroke-width="2" />
-        <text x="50" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="url(#lume-grad)">Lume</text>
+
+        <circle cx="50" cy="50" r="46" class="lume-circle" stroke="url(#lume-neon-grad)" />
+        <circle cx="50" cy="50" r="41" class="lume-circle" stroke="url(#lume-neon-grad)" opacity="0.6" stroke-width="1"/>
+
+        <text x="50" y="57" text-anchor="middle" font-family="'Lora', serif" font-weight="700" font-size="19" fill="#FFFFFF" style="text-shadow: 0 0 10px rgba(52, 213, 242, 0.8);">Lume</text>
+
+        <path d="M50 4 L51 7 L54 8 L51 9 L50 12 L49 9 L46 8 L49 7 Z" class="lume-star" />
+        <circle cx="15" cy="30" r="0.6" class="lume-star" style="animation-delay: 0.5s;"/>
+        <circle cx="85" cy="45" r="0.8" class="lume-star" style="animation-delay: 1.2s;"/>
+        <circle cx="25" cy="75" r="0.5" class="lume-star" style="animation-delay: 0.8s;"/>
+        <circle cx="75" cy="20" r="0.7" class="lume-star" style="animation-delay: 2.1s;"/>
       </svg>
     </div>
+
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&display=swap" rel="stylesheet">
     
     <script>
-  // Запоминаем время открытия страницы
-  window.lumeStartTime = Date.now();
+      // 1. Засекаем время старта
+      window.lumeStartTime = Date.now();
 
-  function hideLumeSplash() {
-    const splash = document.getElementById('splash-screen');
-    if (!splash) return;
+      function hideLumeSplash() {
+        const splash = document.getElementById('splash-screen');
+        if (!splash) return;
 
-    const currentTime = Date.now();
-    const elapsedTime = currentTime - window.lumeStartTime;
-    const minDuration = 3000; // 3 секунды
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - window.lumeStartTime;
+        const minDuration = 3000; // Твои обязательные 3 секунды
 
-    // Считаем, сколько осталось подождать до 3-х секунд
-    const remainingTime = Math.max(0, minDuration - elapsedTime);
+        // 2. Считаем остаток времени
+        const remainingTime = Math.max(0, minDuration - elapsedTime);
 
-    setTimeout(() => {
-      splash.classList.add('fade-out');
-      splash.style.opacity = '0';
-      
-      setTimeout(() => {
-        splash.remove();
-      }, 500); // время на анимацию fade-out
-    }, remainingTime);
-  }
+        setTimeout(() => {
+          splash.classList.add('fade-out');
+          splash.style.opacity = '0';
+          
+          setTimeout(() => {
+            splash.remove();
+          }, 500); 
+        }, remainingTime);
+      }
 
-  // На случай, если вызов hideLumeSplash где-то потеряется, 
-  // ставим страховку на 10 секунд
-  setTimeout(hideLumeSplash, 10000);
-</script>
+      // 3. Страховка: если API зависнет, заставка уберется через 10 сек
+      setTimeout(hideLumeSplash, 10000);
+    </script>
     
     <div id="app" class="max-w-md mx-auto p-6">
         
