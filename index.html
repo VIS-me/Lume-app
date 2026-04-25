@@ -63,18 +63,35 @@
     </div>
     
     <script>
-      function hideLumeSplash() {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-          splash.classList.add('fade-out');
-          splash.style.opacity = '0';
-          setTimeout(() => {
-            splash.remove();
-          }, 500);
-        }
-      }
-    </script>
+  // Запоминаем время открытия страницы
+  window.lumeStartTime = Date.now();
 
+  function hideLumeSplash() {
+    const splash = document.getElementById('splash-screen');
+    if (!splash) return;
+
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - window.lumeStartTime;
+    const minDuration = 3000; // 3 секунды
+
+    // Считаем, сколько осталось подождать до 3-х секунд
+    const remainingTime = Math.max(0, minDuration - elapsedTime);
+
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      splash.style.opacity = '0';
+      
+      setTimeout(() => {
+        splash.remove();
+      }, 500); // время на анимацию fade-out
+    }, remainingTime);
+  }
+
+  // На случай, если вызов hideLumeSplash где-то потеряется, 
+  // ставим страховку на 10 секунд
+  setTimeout(hideLumeSplash, 10000);
+</script>
+    
     <div id="app" class="max-w-md mx-auto p-6">
         
         <div class="flex justify-between items-center mb-10">
