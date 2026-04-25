@@ -9,7 +9,7 @@
     <script src="translations.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-[#0f111a] text-white font-sans min-h-screen pb-24">
+<body class="theme-bg-main theme-text-main font-sans min-h-screen pb-24">
 
     <div id="app" class="max-w-md mx-auto p-6">
         
@@ -26,16 +26,16 @@
                 <div class="flex justify-between items-end">
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <p id="t-hum" class="text-[8px] text-white uppercase font-black mb-1">Hum</p>
+                            <p id="t-hum" class="text-[8px] theme-text-main uppercase font-black mb-1">Hum</p>
                             <p id="humidity" class="text-lg font-bold">--%</p>
                         </div>
                         <div>
-                            <p id="t-wind" class="text-[8px] text-white uppercase font-black mb-1">Wind</p>
+                            <p id="t-wind" class="text-[8px] theme-text-main uppercase font-black mb-1">Wind</p>
                             <p id="wind" class="text-lg font-bold">--</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="temp" class="text-5xl font-light tracking-tighter text-white whitespace-nowrap">--°C</span>
+                        <span id="temp" class="text-5xl font-light tracking-tighter theme-text-main whitespace-nowrap">--°C</span>
                     </div>
                 </div>
             </div>
@@ -46,11 +46,11 @@
                     <span class="text-red-500/20 text-xs">🚨</span>
                 </button>
                 <button onclick="openModal('uk')" class="action-btn-secondary">
-                    <span id="t-management" class="btn-label-base text-white">Management</span>
+                    <span id="t-management" class="btn-label-base theme-text-main">Management</span>
                     <span class="text-slate-600 text-xs">🏢</span>
                 </button>
                 <button onclick="openModal('support')" class="action-btn-secondary">
-                    <span id="t-support" class="btn-label-base text-white">Support</span>
+                    <span id="t-support" class="btn-label-base theme-text-main">Support</span>
                     <span class="text-slate-600 text-xs">✉️</span>
                 </button>
             </div>
@@ -62,7 +62,7 @@
                     <span id="t-create-request" class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Create New Request</span>
                 </button>
 
-                <button onclick="openModal('in-progress')" class="w-full py-3 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center justify-center space-y-2 active:bg-white/10">
+                <button onclick="openModal('in-progress')" class="w-full py-3 theme-glass-btn rounded-3xl flex flex-col items-center justify-center space-y-2">
                     <span id="t-in-progress" class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">In Progress</span>
                 </button>
 
@@ -83,33 +83,33 @@
                     <div>
                         <h3 id="profile-name" class="text-xl font-bold italic tracking-tight">--</h3>
                         <p id="profile-role" class="text-[9px] text-blue-400 font-black uppercase tracking-[0.4em] mt-1">--</p>
-                        <p class="text-[10px] text-white mt-2 font-mono"><span id="t-apartment-label">Апартамент</span>: <span id="apt-numbers">--</span></p>
+                        <p class="text-[10px] theme-text-main mt-2 font-mono"><span id="t-apartment-label">Апартамент</span>: <span id="apt-numbers">--</span></p>
                     </div>
                 </div>
-                <button id="t-edit-btn" onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase bg-white/5 px-6 py-3 rounded-full text-white border border-white/5 active:bg-white/10">Изменить</button>
+                <button id="t-edit-btn" onclick="openModal('edit-profile')" class="w-full text-[10px] font-black uppercase theme-glass-btn px-6 py-3 rounded-full theme-text-main">Изменить</button>
             </div>
 
             <div class="glass-card p-8">
-                <h4 class="text-xl font-bold italic mb-6"><span id="t-to-pay">К оплате на</span> <span id="payment-date" class="text-white text-sm font-medium">--</span></h4>
+                <h4 class="text-xl font-bold italic mb-6"><span id="t-to-pay">К оплате на</span> <span id="payment-date" class="theme-text-main text-sm font-medium">--</span></h4>
                 <div class="space-y-1">
                     <div class="flex justify-between finance-item">
-                        <span id="t-total" class="text-xs text-white font-medium">всего</span>
+                        <span id="t-total" class="text-xs theme-text-main font-medium">всего</span>
                         <span class="text-xl font-black"><span id="p-total-debt">0.00</span> <span class="currency-label">€</span></span>
                     </div>
                     <div id="finance-details" class="space-y-1">
-                        <div class="flex justify-between finance-item text-white">
+                        <div class="flex justify-between finance-item theme-text-main">
                             <span id="t-maintenance" class="text-xs font-medium">содержание</span>
                             <span id="debt-maintenance" class="text-sm font-bold">0.00 €</span>
                         </div>
-                        <div class="flex justify-between finance-item text-white">
+                        <div class="flex justify-between finance-item theme-text-main">
                             <span id="t-hot-water" class="text-xs font-medium">горячая вода</span>
                             <span id="debt-hotwater" class="text-sm font-bold">0.00 €</span>
                         </div>
-                        <div class="flex justify-between finance-item text-white">
+                        <div class="flex justify-between finance-item theme-text-main">
                             <span id="t-garage" class="text-xs font-medium">гараж</span>
                             <span id="debt-garage" class="text-sm font-bold">0.00 €</span>
                         </div>
-                        <div class="flex justify-between finance-item text-white mt-2">
+                        <div class="flex justify-between finance-item theme-text-main mt-2">
                             <span id="t-paid" class="text-xs font-medium">оплачено</span>
                             <span id="debt-paid" class="text-sm font-bold">0.00 €</span>
                         </div>
@@ -120,7 +120,7 @@
     </div>
 
     <!-- MAIN SUPERADMIN PAGE (List of complexes) -->
-    <div id="page-superadmin" class="page bg-[#0f111a] absolute top-0 left-0 w-full min-h-screen z-40 hidden p-6 pb-24">
+    <div id="page-superadmin" class="page theme-bg-main absolute top-0 left-0 w-full min-h-screen z-40 hidden p-6 pb-24">
         <button onclick="switchPage('tasks')" class="mb-4 text-xs font-bold text-gray-400 uppercase tracking-widest">< BACK</button>
         <h2 class="text-xl font-bold mb-6 italic text-purple-400 uppercase">Superadmin Panel</h2>
         
@@ -134,7 +134,7 @@
     </div>
 
     <!-- SUPERADMIN EDIT PAGE (Edit specific complex) -->
-    <div id="page-superadmin-edit" class="page bg-[#0f111a] absolute top-0 left-0 w-full min-h-screen z-[45] hidden p-6 pb-32 overflow-y-auto">
+    <div id="page-superadmin-edit" class="page theme-bg-main absolute top-0 left-0 w-full min-h-screen z-[45] hidden p-6 pb-32 overflow-y-auto">
         <button id="sa-edit-back-btn" onclick="closeSuperadminEdit()" class="mb-4 text-xs font-bold text-gray-400 uppercase tracking-widest">< НАЗАД</button>
         <h2 class="text-xl font-bold mb-6 italic text-purple-400 uppercase" id="sa-edit-title">Редактирование</h2>
         
@@ -191,9 +191,9 @@
     </div>
 
     <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-end justify-center" onclick="closeModal()">
-        <div class="w-full bg-[#1e293b] rounded-t-[3.5rem] p-10 pb-16 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
+        <div id="modal-content-container" class="w-full rounded-t-[3.5rem] p-10 pb-16 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
             <div id="modal-body" class="max-h-[60vh] overflow-y-auto"></div>
-            <button id="t-close" onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl bg-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500 active:bg-white/10">Close</button>
+            <button id="t-close" onclick="closeModal()" class="w-full mt-8 py-4 rounded-2xl theme-glass-btn text-[9px] font-black uppercase tracking-widest text-slate-500">Close</button>
         </div>
     </div>
 
