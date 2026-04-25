@@ -190,11 +190,14 @@ const tg = window.Telegram.WebApp;
                     document.getElementById('admin-block')?.classList.remove('hidden');
                 }
 
+                if (typeof hideLumeSplash === 'function') hideLumeSplash();
+
             } catch (err) { 
                 console.error("Data loading error:", err);
                 const status = document.getElementById('status-label');
                 status.innerText = t('status_offline');
                 status.classList.replace('text-blue-500/50', 'text-red-500/50');
+                if (typeof hideLumeSplash === 'function') hideLumeSplash();
             }
         }
 
