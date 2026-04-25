@@ -1,6 +1,27 @@
 const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
+        
+        // Setup secure fetch wrapper to always pass initData to the backend
+        const originalFetch = window.fetch;
+        window.fetch = async function() {
+            const args = arguments;
+            const tgInitData = tg.initData || '';
+            
+            if (args.length > 1) {
+                args[1].headers = {
+                    ...args[1].headers,
+                    'X-Telegram-Init-Data': tgInitData
+                };
+            } else {
+                args[1] = {
+                    headers: {
+                        'X-Telegram-Init-Data': tgInitData
+                    }
+                };
+            }
+            return originalFetch.apply(this, args);
+        };
 
         // --- MULTILINGUAL LOGIC ---
         function getLang() {
@@ -306,10 +327,11 @@ const tg = window.Telegram.WebApp;
                     
                     // Add the "Remind Payment" and "PDF Report" buttons at the top of the modal
                     html += `
-                        <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="grid grid-cols-2 gap-3 mb-3">
                             <button onclick="openModal('payment-reminders')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pay_remind_title') || 'Remind'}</button>
                             <button onclick="openModal('pdf-report-confirm')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pdf_title') || 'PDF Report'}</button>
                         </div>
+                        <button onclick="tg.showAlert('В разработке')" class="w-full py-3 mb-6 bg-emerald-600/20 border border-emerald-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-emerald-400 active:bg-emerald-600/40">LOAD (CSV/EXCEL)</button>
                         <div class="space-y-2">`;
                         
                     const debtFiltered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
@@ -504,10 +526,13 @@ const tg = window.Telegram.WebApp;
             servicesBtn.style.display = 'block';
             checklistsBtn.style.display = 'block';
 
+            const isEngineer = roleLower.includes('engineer');
+            const isAdmin = roleLower.includes('director') || roleLower.includes('administrator');
+            
             // Role-based restrictions logic when opening from 'tasks' page
             if (source === 'tasks') {
-                if (roleLower.includes('engineer')) {
-                    // Engineers can ONLY edit checklists
+                if (isEngineer && !isAdmin) {
+                    // Engineers ONLY can ONLY edit checklists
                     saStatusCard.style.display = 'none';
                     saNameCard.style.display = 'none';
                     saCityCard.style.display = 'none';
@@ -517,11 +542,15 @@ const tg = window.Telegram.WebApp;
                     contactsBtn.style.display = 'none';
                     servicesBtn.style.display = 'none';
                     checklistsBtn.style.display = 'block';
-                } else if (roleLower.includes('director') || roleLower.includes('administrator')) {
-                    // Director/Admin can edit anything EXCEPT checklists
+                } else if (isAdmin && !isEngineer) {
+                    // Director/Admin ONLY can edit anything EXCEPT checklists
                     checklistsBtn.style.display = 'none';
                 }
+                // If both, nothing is blocked!
             }
+            
+            const inviteBlock = document.getElementById('sa-invite-block');
+            const inviteInput = document.getElementById('sa-invite-link');
             
             if (complex) {
                 title.innerText = "Редактирование: " + complex.name;
@@ -530,11 +559,26 @@ const tg = window.Telegram.WebApp;
                 document.getElementById('sa-edit-city').value = complex.city || "";
                 document.getElementById('sa-edit-status').checked = (String(complex.status).toLowerCase() === 'active');
                 
-                rolesBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
-                contactsBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
-                servicesBtn.style.display = (source === 'tasks' && roleLower.includes('engineer')) ? 'none' : 'block';
+                if (inviteBlock && inviteInput) {
+                    if (complex.invite_link) {
+                        inviteInput.value = complex.invite_link;
+                        inviteBlock.style.display = 'flex';
+                    } else {
+                        inviteBlock.style.display = 'none';
+                    }
+                }
                 
-                checklistsBtn.style.display = (source === 'tasks' && (roleLower.includes('director') || roleLower.includes('administrator')) && !roleLower.includes('engineer')) ? 'none' : 'block';
+                if (source === 'tasks') {
+                    rolesBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
+                    contactsBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
+                    servicesBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
+                    checklistsBtn.style.display = (isAdmin && !isEngineer) ? 'none' : 'block';
+                } else {
+                    rolesBtn.style.display = 'block';
+                    contactsBtn.style.display = 'block';
+                    servicesBtn.style.display = 'block';
+                    checklistsBtn.style.display = 'block';
+                }
                 
                 if (complex.logo_url) {
                     preview.src = complex.logo_url;
@@ -548,6 +592,7 @@ const tg = window.Telegram.WebApp;
                 document.getElementById('sa-edit-name').value = "";
                 document.getElementById('sa-edit-city').value = "";
                 document.getElementById('sa-edit-status').checked = true;
+                if (inviteBlock) inviteBlock.style.display = 'none';
                 rolesBtn.style.display = 'none';
                 contactsBtn.style.display = 'none';
                 servicesBtn.style.display = 'none';
