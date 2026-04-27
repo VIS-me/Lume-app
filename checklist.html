@@ -37,8 +37,7 @@
             border: 2px solid rgba(255,255,255,0.1);
             border-top: 2px solid #0088cc;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 20px; height: 20px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -56,11 +55,10 @@
 
     <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
         <div class="loader"></div>
-        <p id="loading-text" class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов...</p>
+        <p id="loading-text" class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка...</p>
     </div>
 
-    <div id="checklist-container" class="space-y-6 hidden">
-        </div>
+    <div id="checklist-container" class="space-y-6 hidden"></div>
 
     <div id="footer-section" class="hidden">
         <button id="btn-send-report" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
@@ -73,7 +71,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Secure fetch wrapper
+        // Обязательная прослойка для передачи данных авторизации
         const originalFetch = window.fetch;
         window.fetch = async function() {
             const args = arguments;
@@ -86,20 +84,7 @@
             return originalFetch.apply(this, args);
         };
 
-        function getLang() {
-            const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
-            if (code.includes('ru')) return 'ru';
-            if (code.includes('uk')) return 'uk';
-            if (['sr', 'hr', 'bs', 'me'].some(x => code.includes(x))) return 'sr';
-            return 'en';
-        }
-        const lang = getLang();
-        const t = (key) => (window.translations && translations[lang] && translations[lang][key]) || key;
-
         const API_BASE = window.location.origin;
-        const API_GET_ITEMS = `${API_BASE}/api/admin_items`;
-        const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
-        
         const urlParams = new URLSearchParams(window.location.search);
         const USER_INFO = {
             user_id: urlParams.get('user_id') || tg.initDataUnsafe?.user?.id,
@@ -108,76 +93,52 @@
 
         let loadedItems = [];
 
-        function updateStaticTranslations() {
-            document.getElementById('header-title').innerText = t('chk_title') || "Technical Checklist";
-            document.getElementById('btn-send-report').innerText = t('chk_send') || "Отправить отчет";
-            document.getElementById('loading-text').innerText = t('chk_load') || "Загрузка объектов...";
+        function getLang() {
+            const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
+            return code.includes('ru') ? 'ru' : (code.includes('uk') ? 'uk' : 'en');
         }
+        const lang = getLang();
+        const t = (key) => (window.translations && translations[lang] && translations[lang][key]) || key;
 
         async function init() {
-            updateStaticTranslations();
+            document.getElementById('header-title').innerText = t('chk_title');
+            document.getElementById('btn-send-report').innerText = t('chk_send');
+            
             try {
-                // Запрашиваем данные из нового эндпоинта admin_items
-                const response = await fetch(`${API_GET_ITEMS}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
+                // Пытаемся получить данные с вашего сервера
+                const response = await fetch(`${API_BASE}/api/admin_items?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`);
                 const data = await response.json();
                 
-                // Исправлено: берем данные из data.items как в твоем Python коде
-                loadedItems = data.items || [];
+                // Пробуем все возможные варианты ключей, которые может вернуть сервер
+                loadedItems = data.items || data.area_objects || [];
 
-                if (loadedItems.length === 0) {
-                    throw new Error("Список объектов пуст");
-                }
+                if (loadedItems.length === 0) throw new Error("Empty list");
 
-                renderChecklist(loadedItems);
+                render(loadedItems);
             } catch (err) {
-                console.error("Load error:", err);
-                document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка загрузки</p>
-                `;
+                console.error(err);
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-xs">ОШИБКА ЗАГРУЗКИ</p>`;
             }
         }
 
-        function renderChecklist(items) {
+        function render(items) {
             const container = document.getElementById('checklist-container');
-            
-            const statuses = [
-                { key: 'chk_norm', color: 'text-green-500', label: t('chk_norm') || "OK" }, 
-                { key: 'chk_warn', color: 'text-yellow-500', label: t('chk_warn') || "Увага" }, 
-                { key: 'chk_err', color: 'text-red-500', label: t('chk_err') || "Ошибка" }
-            ];
-
             container.innerHTML = items.map((item, index) => {
-                const areaName = item.Area_object || item.area_object || "Unnamed Area";
+                const name = item.Area_object || item.area_object || item;
                 const category = item.Category || item.category || "";
-                const id = `cat_${index}`;
-
                 return `
-                    <div class="glass-card p-5" data-index="${index}">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="text-[8px] opacity-40 uppercase font-black tracking-widest">${category}</p>
-                                <p class="text-[12px] text-blue-400 font-black uppercase tracking-wider" id="name-${id}">${areaName}</p>
-                            </div>
-                        </div>
-                        
+                    <div class="glass-card p-5">
+                        <p class="text-[8px] opacity-40 uppercase font-black mb-1">${category}</p>
+                        <p class="text-[12px] text-blue-400 font-black uppercase mb-4">${name}</p>
                         <div class="grid grid-cols-3 gap-2 mb-4">
-                            ${statuses.map((status, sIdx) => `
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="status-${id}" value="${status.key}" ${sIdx === 0 ? 'checked' : ''} class="status-check hidden">
-                                    <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
-                                        <span class="text-[8px] font-black uppercase ${status.color}">${status.label}</span>
-                                    </div>
-                                </label>
-                            `).join('')}
+                            <label><input type="radio" name="status-${index}" value="chk_norm" checked class="status-check hidden"><div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-green-500 uppercase">${t('chk_norm')}</div></label>
+                            <label><input type="radio" name="status-${index}" value="chk_warn" class="status-check hidden"><div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-yellow-500 uppercase">${t('chk_warn')}</div></label>
+                            <label><input type="radio" name="status-${index}" value="chk_err" class="status-check hidden"><div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-red-500 uppercase">${t('chk_err')}</div></label>
                         </div>
-
-                        <input type="text" id="note-${id}" placeholder="${t('chk_comment') || 'Комментарий...'}" class="text-[12px]">
+                        <input type="text" id="note-${index}" placeholder="${t('chk_comment')}" class="text-[12px]">
                     </div>
                 `;
             }).join('');
-
             document.getElementById('loading-state').classList.add('hidden');
             document.getElementById('checklist-container').classList.remove('hidden');
             document.getElementById('footer-section').classList.remove('hidden');
@@ -185,51 +146,37 @@
 
         async function sendFullReport() {
             const btn = document.getElementById('btn-send-report');
-            const originalText = btn.innerText;
-            
             btn.disabled = true;
             btn.innerText = "ОТПРАВКА...";
-            
-            const itemsReport = loadedItems.map((item, index) => {
-                const id = `cat_${index}`;
-                const areaName = item.Area_object || item.area_object;
-                const statusInput = document.querySelector(`input[name="status-${id}"]:checked`);
-                const noteInput = document.getElementById(`note-${id}`);
-                
-                return {
-                    name: areaName,
-                    status: statusInput ? statusInput.value : 'chk_norm',
-                    note: noteInput ? noteInput.value : ""
-                };
-            });
 
-            const payload = {
-                user_id: USER_INFO.user_id,
-                complex_id: USER_INFO.complex_id,
-                object_name: t('chk_title') || "Technical Checklist",
-                items: itemsReport, 
-                timestamp: new Date().toLocaleString('ru-RU'),
-                lang: lang
-            };
+            const reportItems = loadedItems.map((item, index) => ({
+                name: item.Area_object || item.area_object || item,
+                status: document.querySelector(`input[name="status-${index}"]:checked`).value,
+                note: document.getElementById(`note-${index}`).value
+            }));
 
             try {
-                const response = await fetch(API_SUBMIT, {
+                const res = await fetch(`${API_BASE}/api/submit_checklist`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        user_id: USER_INFO.user_id,
+                        complex_id: USER_INFO.complex_id,
+                        object_name: t('chk_title'),
+                        items: reportItems,
+                        timestamp: new Date().toLocaleString('ru-RU'),
+                        lang: lang
+                    })
                 });
-
-                if (response.ok) {
-                    btn.innerText = t('success') || "ОТПРАВЛЕНО";
-                    btn.style.backgroundColor = "#22c55e";
+                if (res.ok) {
+                    btn.innerText = "ГОТОВО";
+                    btn.style.background = "#22c55e";
                     setTimeout(() => goBack(), 1500);
-                } else {
-                    throw new Error();
-                }
-            } catch (err) {
-                tg.showAlert(t('error_conn') || "Ошибка соединения");
+                } else throw new Error();
+            } catch (e) {
+                tg.showAlert("Ошибка отправки");
                 btn.disabled = false;
-                btn.innerText = originalText;
+                btn.innerText = t('chk_send');
             }
         }
 
