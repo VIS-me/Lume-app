@@ -46,7 +46,6 @@
 </head>
 <body class="p-6 pb-12">
 
-    <!-- Header -->
     <div class="flex items-center justify-between mb-8">
         <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
             <span class="text-xl">←</span>
@@ -55,15 +54,13 @@
         <div class="w-10"></div>
     </div>
 
-    <!-- Загрузка -->
     <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
         <div class="loader"></div>
-        <p id="loading-text" class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов из Services...</p>
+        <p id="loading-text" class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Загрузка объектов...</p>
     </div>
 
     <div id="checklist-container" class="space-y-6 hidden">
-        <!-- Сюда попадут объекты из столбца Area_object -->
-    </div>
+        </div>
 
     <div id="footer-section" class="hidden">
         <button id="btn-send-report" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
@@ -71,29 +68,20 @@
         </button>
     </div>
 
-    <!-- Translations & Scripts -->
     <script src="translations.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Setup secure fetch wrapper to always pass initData to the backend
+        // Secure fetch wrapper
         const originalFetch = window.fetch;
         window.fetch = async function() {
             const args = arguments;
             const tgInitData = tg.initData || '';
-            
             if (args.length > 1) {
-                args[1].headers = {
-                    ...args[1].headers,
-                    'X-Telegram-Init-Data': tgInitData
-                };
+                args[1].headers = { ...args[1].headers, 'X-Telegram-Init-Data': tgInitData };
             } else {
-                args[1] = {
-                    headers: {
-                        'X-Telegram-Init-Data': tgInitData
-                    }
-                };
+                args[1] = { headers: { 'X-Telegram-Init-Data': tgInitData } };
             }
             return originalFetch.apply(this, args);
         };
@@ -106,10 +94,10 @@
             return 'en';
         }
         const lang = getLang();
-        const t = (key) => translations[lang][key] || translations['en'][key] || key;
+        const t = (key) => (window.translations && translations[lang] && translations[lang][key]) || key;
 
-        const API_BASE = "";
-        const API_DATA = `${API_BASE}/api/data`;
+        const API_BASE = window.location.origin;
+        const API_GET_ITEMS = `${API_BASE}/api/admin_items`;
         const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -118,64 +106,74 @@
             complex_id: urlParams.get('complex_id')
         };
 
-        let loadedCategories = [];
+        let loadedItems = [];
 
         function updateStaticTranslations() {
-            document.getElementById('header-title').innerText = t('chk_title');
-            document.getElementById('btn-send-report').innerText = t('chk_send');
-            document.getElementById('loading-text').innerText = t('chk_load');
+            document.getElementById('header-title').innerText = t('chk_title') || "Technical Checklist";
+            document.getElementById('btn-send-report').innerText = t('chk_send') || "Отправить отчет";
+            document.getElementById('loading-text').innerText = t('chk_load') || "Загрузка объектов...";
         }
 
         async function init() {
             updateStaticTranslations();
             try {
-                const response = await fetch(`${API_DATA}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
+                // Запрашиваем данные из нового эндпоинта admin_items
+                const response = await fetch(`${API_GET_ITEMS}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
-                loadedCategories = (data.area_objects || []).filter(item => item && item.trim() !== "");
+                // Исправлено: берем данные из data.items как в твоем Python коде
+                loadedItems = data.items || [];
 
-                if (loadedCategories.length === 0) {
+                if (loadedItems.length === 0) {
                     throw new Error("Список объектов пуст");
                 }
 
-                renderChecklist(loadedCategories);
+                renderChecklist(loadedItems);
             } catch (err) {
                 console.error("Load error:", err);
                 document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">${t('chk_err_load')}</p>
+                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка загрузки</p>
                 `;
             }
         }
 
-        function renderChecklist(categories) {
+        function renderChecklist(items) {
             const container = document.getElementById('checklist-container');
             
             const statuses = [
-                { key: 'chk_norm', color: 'text-green-500' }, 
-                { key: 'chk_warn', color: 'text-yellow-500' }, 
-                { key: 'chk_err', color: 'text-red-500' }
+                { key: 'chk_norm', color: 'text-green-500', label: t('chk_norm') || "OK" }, 
+                { key: 'chk_warn', color: 'text-yellow-500', label: t('chk_warn') || "Увага" }, 
+                { key: 'chk_err', color: 'text-red-500', label: t('chk_err') || "Ошибка" }
             ];
 
-            container.innerHTML = categories.map((name, index) => {
+            container.innerHTML = items.map((item, index) => {
+                const areaName = item.Area_object || item.area_object || "Unnamed Area";
+                const category = item.Category || item.category || "";
                 const id = `cat_${index}`;
+
                 return `
-                    <div class="glass-card p-5">
-                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${name}</p>
+                    <div class="glass-card p-5" data-index="${index}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-[8px] opacity-40 uppercase font-black tracking-widest">${category}</p>
+                                <p class="text-[12px] text-blue-400 font-black uppercase tracking-wider" id="name-${id}">${areaName}</p>
+                            </div>
+                        </div>
                         
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             ${statuses.map((status, sIdx) => `
                                 <label class="relative cursor-pointer">
                                     <input type="radio" name="status-${id}" value="${status.key}" ${sIdx === 0 ? 'checked' : ''} class="status-check hidden">
                                     <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
-                                        <span class="text-[8px] font-black uppercase ${status.color}">${t(status.key)}</span>
+                                        <span class="text-[8px] font-black uppercase ${status.color}">${status.label}</span>
                                     </div>
                                 </label>
                             `).join('')}
                         </div>
 
-                        <input type="text" id="note-${id}" placeholder="${t('chk_comment')}" class="text-[12px]">
+                        <input type="text" id="note-${id}" placeholder="${t('chk_comment') || 'Комментарий...'}" class="text-[12px]">
                     </div>
                 `;
             }).join('');
@@ -186,24 +184,30 @@
         }
 
         async function sendFullReport() {
-            const btn = tg.MainButton;
-            btn.setText("ОТПРАВКА...").show();
+            const btn = document.getElementById('btn-send-report');
+            const originalText = btn.innerText;
             
-            // Собираем данные по каждому пункту
-            const items = loadedCategories.map((name, index) => {
-                const statusKey = document.querySelector(`input[name="status-cat_${index}"]:checked`).value;
+            btn.disabled = true;
+            btn.innerText = "ОТПРАВКА...";
+            
+            const itemsReport = loadedItems.map((item, index) => {
+                const id = `cat_${index}`;
+                const areaName = item.Area_object || item.area_object;
+                const statusInput = document.querySelector(`input[name="status-${id}"]:checked`);
+                const noteInput = document.getElementById(`note-${id}`);
+                
                 return {
-                    name: name,
-                    status: statusKey, // e.g. chk_norm
-                    note: document.getElementById(`note-cat_${index}`).value
+                    name: areaName,
+                    status: statusInput ? statusInput.value : 'chk_norm',
+                    note: noteInput ? noteInput.value : ""
                 };
             });
 
             const payload = {
                 user_id: USER_INFO.user_id,
                 complex_id: USER_INFO.complex_id,
-                object_name: t('chk_title'), // Добавлено название для PDF и БД (уже переведенное!)
-                items: items, 
+                object_name: t('chk_title') || "Technical Checklist",
+                items: itemsReport, 
                 timestamp: new Date().toLocaleString('ru-RU'),
                 lang: lang
             };
@@ -216,14 +220,16 @@
                 });
 
                 if (response.ok) {
-                    btn.setText(t('success')).setParams({ color: "#22c55e" });
+                    btn.innerText = t('success') || "ОТПРАВЛЕНО";
+                    btn.style.backgroundColor = "#22c55e";
                     setTimeout(() => goBack(), 1500);
                 } else {
                     throw new Error();
                 }
             } catch (err) {
-                tg.showAlert(t('error_conn'));
-                btn.hide();
+                tg.showAlert(t('error_conn') || "Ошибка соединения");
+                btn.disabled = false;
+                btn.innerText = originalText;
             }
         }
 
