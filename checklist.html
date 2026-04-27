@@ -77,6 +77,27 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
+        // Setup secure fetch wrapper to always pass initData to the backend
+        const originalFetch = window.fetch;
+        window.fetch = async function() {
+            const args = arguments;
+            const tgInitData = tg.initData || '';
+            
+            if (args.length > 1) {
+                args[1].headers = {
+                    ...args[1].headers,
+                    'X-Telegram-Init-Data': tgInitData
+                };
+            } else {
+                args[1] = {
+                    headers: {
+                        'X-Telegram-Init-Data': tgInitData
+                    }
+                };
+            }
+            return originalFetch.apply(this, args);
+        };
+
         function getLang() {
             const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
             if (code.includes('ru')) return 'ru';
@@ -87,7 +108,7 @@
         const lang = getLang();
         const t = (key) => translations[lang][key] || translations['en'][key] || key;
 
-        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
+        const API_BASE = "";
         const API_DATA = `${API_BASE}/api/data`;
         const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
