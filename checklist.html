@@ -6,74 +6,161 @@
     <title>Lume Checklist</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f111a; color: white; font-family: sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+        }
+        .status-check:checked + .status-label { 
+            border-color: #0088cc; 
+            background: rgba(0, 136, 204, 0.2);
+            color: white;
+        }
+        .status-label { transition: all 0.2s; color: rgba(255,255,255,0.4); }
+        input[type="text"] {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 0.6rem;
+            color: white;
+            width: 100%;
+            outline: none;
+            font-size: 12px;
+        }
+    </style>
 </head>
-<body class="bg-[#0f111a] text-white p-6">
-    <div id="status-debug" class="text-[10px] text-slate-500 mb-4 font-mono"></div>
+<body class="p-4 pb-24">
+
+    <div id="status-debug" class="text-[8px] text-slate-600 mb-2 font-mono uppercase tracking-widest text-center"></div>
+
     <div id="loading-state" class="py-20 text-center">
-        <p id="error-msg" class="text-blue-400 animate-pulse">СИНХРОНИЗАЦИЯ...</p>
+        <p class="text-blue-400 animate-pulse text-xs font-black uppercase tracking-widest">Загрузка объектов...</p>
     </div>
+
     <div id="checklist-container" class="space-y-4 hidden"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
+        tg.expand();
+
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        const debug = document.getElementById('status-debug');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const USER_INFO = {
+            user_id: urlParams.get('user_id') || tg.initDataUnsafe?.user?.id,
+            complex_id: urlParams.get('complex_id') || '1'
+        };
+
+        let loadedItems = [];
 
         async function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
-            const complexId = urlParams.get('complex_id') || '1';
+            document.getElementById('status-debug').innerText = `Complex: ${USER_INFO.complex_id} | Server: OK`;
             
-            debug.innerText = `Connecting to: ${API_BASE} | User: ${userId}`;
-
             try {
-                const response = await fetch(`${API_BASE}/api/admin_items?user_id=${userId}&complex_id=${complexId}`, {
+                const response = await fetch(`${API_BASE}/api/admin_items?complex_id=${USER_INFO.complex_id}`, {
                     headers: {
                         'X-Telegram-Init-Data': tg.initData || '',
                         'ngrok-skip-browser-warning': 'true'
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`SERVER_ERROR_${response.status}`);
-                }
-
+                if (!response.ok) throw new Error(`HTTP_${response.status}`);
+                
                 const data = await response.json();
-                console.log("Server Response:", data);
+                loadedItems = data.items || [];
 
-                // Пытаемся найти данные в любом из возможных ключей
-                const items = data.items || data.area_objects || data.data || (Array.isArray(data) ? data : null);
-
-                if (!items || items.length === 0) {
-                    throw new Error("EMPTY_DATA_FROM_SERVER");
+                if (loadedItems.length === 0) {
+                    document.getElementById('loading-state').innerHTML = `<p class="text-slate-500 text-xs font-black uppercase">Нет объектов</p>`;
+                    return;
                 }
 
-                render(items);
+                render(loadedItems);
+                setupMainButton();
             } catch (err) {
-                console.error(err);
-                document.getElementById('error-msg').className = "text-red-500";
-                document.getElementById('error-msg').innerText = `ОШИБКА: ${err.message}`;
-                debug.innerText += ` | Fail: ${err.message}`;
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-xs font-black uppercase">Ошибка: ${err.message}</p>`;
             }
         }
 
         function render(items) {
             const container = document.getElementById('checklist-container');
             container.innerHTML = items.map((item, index) => {
-                const name = item.Area_object || item.area_object || (typeof item === 'string' ? item : 'Unnamed');
+                // Используем те поля, которые пришли из твоей базы
+                const name = item.Area_object || "Без названия";
+                const category = item.Category || "Общее";
+                
                 return `
-                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <p class="text-blue-400 text-xs font-bold uppercase">${name}</p>
-                        <div class="flex gap-2 mt-3">
-                            <div class="flex-1 py-2 text-center bg-green-500/20 text-green-500 text-[10px] rounded-lg border border-green-500/30">NORM</div>
-                            <div class="flex-1 py-2 text-center bg-white/5 text-slate-500 text-[10px] rounded-lg border border-white/10">WARN</div>
-                            <div class="flex-1 py-2 text-center bg-white/5 text-slate-500 text-[10px] rounded-lg border border-white/10">ERR</div>
+                    <div class="glass-card p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-blue-400 text-[11px] font-black uppercase tracking-tighter">${name}</h3>
+                            <span class="text-[8px] bg-white/5 px-2 py-0.5 rounded text-slate-500 uppercase">${category}</span>
                         </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <label>
+                                <input type="radio" name="status-${index}" value="NORM" checked class="status-check hidden">
+                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase">NORM</div>
+                            </label>
+                            <label>
+                                <input type="radio" name="status-${index}" value="WARN" class="status-check hidden">
+                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-yellow-500/50">WARN</div>
+                            </label>
+                            <label>
+                                <input type="radio" name="status-${index}" value="ERR" class="status-check hidden">
+                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-red-500/50">ERR</div>
+                            </label>
+                        </div>
+                        <input type="text" id="note-${index}" placeholder="Комментарий (если нужно)...">
                     </div>
                 `;
             }).join('');
+            
             document.getElementById('loading-state').classList.add('hidden');
             container.classList.remove('hidden');
+        }
+
+        function setupMainButton() {
+            tg.MainButton.setText("ОТПРАВИТЬ ОТЧЕТ").show();
+            tg.MainButton.onClick(sendReport);
+        }
+
+        async function sendReport() {
+            tg.MainButton.showProgress();
+            
+            const reportData = loadedItems.map((item, index) => ({
+                name: item.Area_object,
+                status: document.querySelector(`input[name="status-${index}"]:checked`).value,
+                note: document.getElementById(`note-${index}`).value
+            }));
+
+            try {
+                const res = await fetch(`${API_BASE}/api/submit_checklist`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': tg.initData || ''
+                    },
+                    body: JSON.stringify({
+                        user_id: USER_INFO.user_id,
+                        complex_id: USER_INFO.complex_id,
+                        items: reportData
+                    })
+                });
+                
+                if (res.ok) {
+                    tg.MainButton.hideProgress();
+                    tg.MainButton.setText("ОТПРАВЛЕНО!").setParams({ color: "#22c55e" });
+                    tg.HapticFeedback.notificationOccurred('success');
+                    setTimeout(() => tg.close(), 1000);
+                } else {
+                    throw new Error("Ошибка сервера");
+                }
+            } catch (e) {
+                tg.MainButton.hideProgress();
+                tg.showAlert("Не удалось отправить: " + e.message);
+            }
         }
 
         init();
