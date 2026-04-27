@@ -11,43 +11,73 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.5rem;
+            border-radius: 2rem;
         }
+        /* Исправлено: добавление рамки при выборе статуса */
         .status-check:checked + .status-label { 
-            border-color: #0088cc; 
-            background: rgba(0, 136, 204, 0.2);
+            border-color: #0088cc !important; 
+            background: rgba(0, 136, 204, 0.2); 
             color: white;
-            border-width: 1px;
         }
-        .status-label { transition: all 0.2s; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.05); }
-        input[type="text"] {
+        input, textarea {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            padding: 0.6rem;
+            border-radius: 1rem;
+            padding: 0.8rem;
             color: white;
             width: 100%;
             outline: none;
-            font-size: 12px;
+            font-size: 14px;
         }
+        .btn-send {
+            background: #0088cc;
+            box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
+        }
+        .loader {
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #0088cc;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 pb-24">
+<body class="p-6 pb-12">
 
-    <div id="status-debug" class="text-[8px] text-slate-600 mb-2 font-mono uppercase tracking-widest text-center"></div>
-
-    <div id="loading-state" class="py-20 text-center">
-        <p class="text-blue-400 animate-pulse text-xs font-black uppercase tracking-widest">Синхронизация объектов...</p>
+    <div class="flex items-center justify-between mb-8">
+        <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
+            <span class="text-xl">←</span>
+        </button>
+        <h1 class="text-lg font-bold italic">Technical Checklist</h1>
+        <div class="w-10"></div>
     </div>
 
-    <div id="checklist-container" class="space-y-4 hidden"></div>
+    <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
+        <div class="loader"></div>
+        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Синхронизация с базой объектов...</p>
+    </div>
+
+    <div id="checklist-container" class="space-y-6 hidden">
+        </div>
+
+    <div id="footer-section" class="hidden">
+        <button id="submit-btn" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
+            Отправить отчет
+        </button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
+        // Важно: берем объекты через API_BASE + /api/admin_items, как в последних правках бэкенда
+        const API_ITEMS = `${API_BASE}/api/admin_items`;
+        const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
         const urlParams = new URLSearchParams(window.location.search);
         const USER_INFO = {
@@ -59,115 +89,121 @@
 
         async function init() {
             if (!USER_INFO.user_id) {
-                document.getElementById('loading-state').innerHTML = `<p class="text-yellow-500 text-xs font-black uppercase">Ошибка: User ID не найден</p>`;
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-[9px] font-black uppercase">Ошибка: User ID не найден</p>`;
                 return;
             }
 
-            document.getElementById('status-debug').innerText = `Complex: ${USER_INFO.complex_id} | User: ${USER_INFO.user_id}`;
-            
             try {
-                // Добавляем user_id в параметры запроса, чтобы избежать ошибки bigint: "None" на бэкенде
-                const response = await fetch(`${API_BASE}/api/admin_items?complex_id=${USER_INFO.complex_id}&user_id=${USER_INFO.user_id}`, {
-                    headers: {
-                        'X-Telegram-Init-Data': tg.initData || '',
-                        'ngrok-skip-browser-warning': 'true'
+                // ПЕРЕДАЕМ user_id и complex_id, чтобы избежать ошибки bigint: "None"
+                const response = await fetch(`${API_ITEMS}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
+                    headers: { 
+                        'ngrok-skip-browser-warning': 'true',
+                        'X-Telegram-Init-Data': tg.initData || ''
                     }
                 });
-
-                if (!response.ok) throw new Error(`HTTP_${response.status}`);
+                
+                if (!response.ok) throw new Error(`Server Error: ${response.status}`);
                 
                 const data = await response.json();
+                // Бэкенд возвращает объекты в поле items. Используем поле area_object.
                 loadedItems = data.items || [];
 
                 if (loadedItems.length === 0) {
-                    document.getElementById('loading-state').innerHTML = `<p class="text-slate-500 text-xs font-black uppercase">В этом ЖК нет объектов для проверки</p>`;
-                    return;
+                    throw new Error("Нет данных в таблице services");
                 }
 
-                render(loadedItems);
-                setupMainButton();
+                renderChecklist(loadedItems);
             } catch (err) {
-                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-xs font-black uppercase">Ошибка загрузки: ${err.message}</p>`;
+                console.error("Load error:", err);
+                document.getElementById('loading-state').innerHTML = `
+                    <p class="text-red-500 text-[9px] font-black uppercase tracking-widest">Ошибка загрузки объектов</p>
+                `;
             }
         }
 
-        function render(items) {
+        function renderChecklist(items) {
             const container = document.getElementById('checklist-container');
+            
             container.innerHTML = items.map((item, index) => {
-                // Соответствие вашему столбцу area_object в таблице services
-                const name = item.area_object || "Неизвестный объект";
-                
+                const name = item.area_object || "Без названия";
                 return `
-                    <div class="glass-card p-4">
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="text-blue-400 text-[11px] font-black uppercase tracking-tighter">${name}</h3>
-                        </div>
+                    <div class="glass-card p-5">
+                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${name}</p>
                         
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            <label>
-                                <input type="radio" name="status-${index}" value="Норма" checked class="status-check hidden">
-                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase">НОРМА</div>
-                            </label>
-                            <label>
-                                <input type="radio" name="status-${index}" value="Внимание" class="status-check hidden">
-                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-yellow-500/50">ВНИМАНИЕ</div>
-                            </label>
-                            <label>
-                                <input type="radio" name="status-${index}" value="Авария" class="status-check hidden">
-                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-red-500/50">АВАРИЯ</div>
-                            </label>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            ${['Норма', 'Внимание', 'Авария'].map(status => `
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="status-${index}" value="${status}" ${status === 'Норма' ? 'checked' : ''} class="status-check hidden">
+                                    <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
+                                        <span class="text-[8px] font-black uppercase ${getStatusColor(status)}">${status}</span>
+                                    </div>
+                                </label>
+                            `).join('')}
                         </div>
-                        <input type="text" id="note-${index}" placeholder="Примечание (если нужно)...">
+
+                        <input type="text" id="note-${index}" placeholder="Примечание к объекту..." class="text-[12px]">
                     </div>
                 `;
             }).join('');
-            
+
             document.getElementById('loading-state').classList.add('hidden');
-            container.classList.remove('hidden');
+            document.getElementById('checklist-container').classList.remove('hidden');
+            document.getElementById('footer-section').classList.remove('hidden');
         }
 
-        function setupMainButton() {
-            tg.MainButton.setText("ОТПРАВИТЬ ОТЧЕТ").show();
-            tg.MainButton.offClick(sendReport); // Сброс старых обработчиков
-            tg.MainButton.onClick(sendReport);
+        function getStatusColor(status) {
+            if (status === 'Норма') return 'text-green-500';
+            if (status === 'Внимание') return 'text-yellow-500';
+            return 'text-red-500';
         }
 
-        async function sendReport() {
-            tg.MainButton.showProgress();
+        async function sendFullReport() {
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "ОТПРАВКА...";
             
-            const reportData = loadedItems.map((item, index) => ({
+            const items = loadedItems.map((item, index) => ({
                 name: item.area_object,
                 status: document.querySelector(`input[name="status-${index}"]:checked`).value,
                 note: document.getElementById(`note-${index}`).value
             }));
 
+            const payload = {
+                user_id: USER_INFO.user_id,
+                complex_id: USER_INFO.complex_id,
+                object_name: "Технический обход",
+                items: items,
+                lang: "ru"
+            };
+
             try {
-                const res = await fetch(`${API_BASE}/api/submit_checklist`, {
+                const response = await fetch(API_SUBMIT, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'X-Telegram-Init-Data': tg.initData || ''
                     },
-                    body: JSON.stringify({
-                        user_id: USER_INFO.user_id,
-                        complex_id: USER_INFO.complex_id,
-                        items: reportData
-                    })
+                    body: JSON.stringify(payload)
                 });
-                
-                if (res.ok) {
-                    tg.MainButton.hideProgress();
-                    tg.MainButton.setText("ОТЧЕТ ОТПРАВЛЕН").setParams({ color: "#22c55e" });
+
+                if (response.ok) {
+                    submitBtn.innerText = "ОТЧЕТ ПРИНЯТ";
+                    submitBtn.style.background = "#22c55e";
                     tg.HapticFeedback.notificationOccurred('success');
-                    setTimeout(() => tg.close(), 1200);
+                    setTimeout(() => goBack(), 1500);
                 } else {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || "Ошибка сервера");
+                    const errData = await response.json();
+                    throw new Error(errData.error || "Ошибка отправки");
                 }
-            } catch (e) {
-                tg.MainButton.hideProgress();
-                tg.showAlert("Не удалось отправить: " + e.message);
+            } catch (err) {
+                tg.showAlert("Не удалось отправить: " + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Отправить отчет";
             }
+        }
+
+        function goBack() {
+            window.location.href = `index.html?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`;
         }
 
         init();
