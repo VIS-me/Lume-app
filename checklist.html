@@ -18,8 +18,9 @@
             border-color: #0088cc; 
             background: rgba(0, 136, 204, 0.2);
             color: white;
+            border-width: 1px;
         }
-        .status-label { transition: all 0.2s; color: rgba(255,255,255,0.4); }
+        .status-label { transition: all 0.2s; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.05); }
         input[type="text"] {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -37,7 +38,7 @@
     <div id="status-debug" class="text-[8px] text-slate-600 mb-2 font-mono uppercase tracking-widest text-center"></div>
 
     <div id="loading-state" class="py-20 text-center">
-        <p class="text-blue-400 animate-pulse text-xs font-black uppercase tracking-widest">Загрузка объектов...</p>
+        <p class="text-blue-400 animate-pulse text-xs font-black uppercase tracking-widest">Синхронизация объектов...</p>
     </div>
 
     <div id="checklist-container" class="space-y-4 hidden"></div>
@@ -57,10 +58,16 @@
         let loadedItems = [];
 
         async function init() {
-            document.getElementById('status-debug').innerText = `Complex: ${USER_INFO.complex_id} | Server: OK`;
+            if (!USER_INFO.user_id) {
+                document.getElementById('loading-state').innerHTML = `<p class="text-yellow-500 text-xs font-black uppercase">Ошибка: User ID не найден</p>`;
+                return;
+            }
+
+            document.getElementById('status-debug').innerText = `Complex: ${USER_INFO.complex_id} | User: ${USER_INFO.user_id}`;
             
             try {
-                const response = await fetch(`${API_BASE}/api/admin_items?complex_id=${USER_INFO.complex_id}`, {
+                // Добавляем user_id в параметры запроса, чтобы избежать ошибки bigint: "None" на бэкенде
+                const response = await fetch(`${API_BASE}/api/admin_items?complex_id=${USER_INFO.complex_id}&user_id=${USER_INFO.user_id}`, {
                     headers: {
                         'X-Telegram-Init-Data': tg.initData || '',
                         'ngrok-skip-browser-warning': 'true'
@@ -73,46 +80,44 @@
                 loadedItems = data.items || [];
 
                 if (loadedItems.length === 0) {
-                    document.getElementById('loading-state').innerHTML = `<p class="text-slate-500 text-xs font-black uppercase">Нет объектов</p>`;
+                    document.getElementById('loading-state').innerHTML = `<p class="text-slate-500 text-xs font-black uppercase">В этом ЖК нет объектов для проверки</p>`;
                     return;
                 }
 
                 render(loadedItems);
                 setupMainButton();
             } catch (err) {
-                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-xs font-black uppercase">Ошибка: ${err.message}</p>`;
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-500 text-xs font-black uppercase">Ошибка загрузки: ${err.message}</p>`;
             }
         }
 
         function render(items) {
             const container = document.getElementById('checklist-container');
             container.innerHTML = items.map((item, index) => {
-                // Используем те поля, которые пришли из твоей базы
-                const name = item.Area_object || "Без названия";
-                const category = item.Category || "Общее";
+                // Соответствие вашему столбцу area_object в таблице services
+                const name = item.area_object || "Неизвестный объект";
                 
                 return `
                     <div class="glass-card p-4">
                         <div class="flex justify-between items-start mb-3">
                             <h3 class="text-blue-400 text-[11px] font-black uppercase tracking-tighter">${name}</h3>
-                            <span class="text-[8px] bg-white/5 px-2 py-0.5 rounded text-slate-500 uppercase">${category}</span>
                         </div>
                         
                         <div class="grid grid-cols-3 gap-2 mb-3">
                             <label>
-                                <input type="radio" name="status-${index}" value="NORM" checked class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase">NORM</div>
+                                <input type="radio" name="status-${index}" value="Норма" checked class="status-check hidden">
+                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase">НОРМА</div>
                             </label>
                             <label>
-                                <input type="radio" name="status-${index}" value="WARN" class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-yellow-500/50">WARN</div>
+                                <input type="radio" name="status-${index}" value="Внимание" class="status-check hidden">
+                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-yellow-500/50">ВНИМАНИЕ</div>
                             </label>
                             <label>
-                                <input type="radio" name="status-${index}" value="ERR" class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-red-500/50">ERR</div>
+                                <input type="radio" name="status-${index}" value="Авария" class="status-check hidden">
+                                <div class="status-label rounded-xl py-2 text-center bg-white/5 text-[9px] font-black uppercase text-red-500/50">АВАРИЯ</div>
                             </label>
                         </div>
-                        <input type="text" id="note-${index}" placeholder="Комментарий (если нужно)...">
+                        <input type="text" id="note-${index}" placeholder="Примечание (если нужно)...">
                     </div>
                 `;
             }).join('');
@@ -123,6 +128,7 @@
 
         function setupMainButton() {
             tg.MainButton.setText("ОТПРАВИТЬ ОТЧЕТ").show();
+            tg.MainButton.offClick(sendReport); // Сброс старых обработчиков
             tg.MainButton.onClick(sendReport);
         }
 
@@ -130,7 +136,7 @@
             tg.MainButton.showProgress();
             
             const reportData = loadedItems.map((item, index) => ({
-                name: item.Area_object,
+                name: item.area_object,
                 status: document.querySelector(`input[name="status-${index}"]:checked`).value,
                 note: document.getElementById(`note-${index}`).value
             }));
@@ -151,11 +157,12 @@
                 
                 if (res.ok) {
                     tg.MainButton.hideProgress();
-                    tg.MainButton.setText("ОТПРАВЛЕНО!").setParams({ color: "#22c55e" });
+                    tg.MainButton.setText("ОТЧЕТ ОТПРАВЛЕН").setParams({ color: "#22c55e" });
                     tg.HapticFeedback.notificationOccurred('success');
-                    setTimeout(() => tg.close(), 1000);
+                    setTimeout(() => tg.close(), 1200);
                 } else {
-                    throw new Error("Ошибка сервера");
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || "Ошибка сервера");
                 }
             } catch (e) {
                 tg.MainButton.hideProgress();
