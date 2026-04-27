@@ -77,7 +77,7 @@ const tg = window.Telegram.WebApp;
         }
 
         // --- APP LOGIC ---
-        const API_BASE = "";
+        const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
         const ENDPOINTS = {
             data: `${API_BASE}/api/data`,
             update: `${API_BASE}/api/update_contacts`,
