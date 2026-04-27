@@ -6,200 +6,74 @@
     <title>Lume Checklist</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #0f111a; color: white; font-family: sans-serif; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2rem;
-        }
-        .status-check:checked + .status-label { 
-            border-color: #0088cc; 
-            background: rgba(0, 136, 204, 0.1); 
-        }
-        input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 0.8rem;
-            color: white;
-            width: 100%;
-            outline: none;
-        }
-        .btn-send {
-            background: #0088cc;
-            box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loader {
-            border: 2px solid rgba(255,255,255,0.1);
-            border-top: 2px solid #0088cc;
-            border-radius: 50%;
-            width: 24px; height: 24px;
-            animation: spin 1s linear infinite;
-        }
-    </style>
 </head>
-<body class="p-6 pb-12">
-
-    <div class="flex items-center justify-between mb-8">
-        <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
-            <span class="text-xl">←</span>
-        </button>
-        <h1 id="header-title" class="text-lg font-bold italic uppercase tracking-tighter">Checklist</h1>
-        <div class="w-10"></div>
+<body class="bg-[#0f111a] text-white p-6">
+    <div id="status-debug" class="text-[10px] text-slate-500 mb-4 font-mono"></div>
+    <div id="loading-state" class="py-20 text-center">
+        <p id="error-msg" class="text-blue-400 animate-pulse">СИНХРОНИЗАЦИЯ...</p>
     </div>
+    <div id="checklist-container" class="space-y-4 hidden"></div>
 
-    <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <div class="loader"></div>
-        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Синхронизация с сервером...</p>
-    </div>
-
-    <div id="checklist-container" class="space-y-6 hidden"></div>
-
-    <div id="footer-section" class="hidden">
-        <button id="btn-send-report" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
-            Отправить отчет
-        </button>
-    </div>
-
-    <script src="translations.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        
         const API_BASE = window.location.origin;
-        const urlParams = new URLSearchParams(window.location.search);
-        const USER_INFO = {
-            user_id: urlParams.get('user_id') || tg.initDataUnsafe?.user?.id,
-            complex_id: urlParams.get('complex_id') || '1'
-        };
-
-        let loadedItems = [];
-
-        function getLang() {
-            const code = (tg.initDataUnsafe?.user?.language_code || 'en').toLowerCase();
-            return code.includes('ru') ? 'ru' : (code.includes('uk') ? 'uk' : 'en');
-        }
-        const lang = getLang();
-        const t = (key) => (window.translations && translations[lang] && translations[lang][key]) || key;
+        const debug = document.getElementById('status-debug');
 
         async function init() {
-            document.getElementById('header-title').innerText = t('chk_title');
-            document.getElementById('btn-send-report').innerText = t('chk_send');
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id;
+            const complexId = urlParams.get('complex_id') || '1';
             
+            debug.innerText = `Connecting to: ${API_BASE} | User: ${userId}`;
+
             try {
-                // ВАЖНО: В заголовки добавляем данные авторизации для middleware вашего api.py
-                const response = await fetch(`${API_BASE}/api/admin_items?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
+                const response = await fetch(`${API_BASE}/api/admin_items?user_id=${userId}&complex_id=${complexId}`, {
                     headers: {
                         'X-Telegram-Init-Data': tg.initData || '',
                         'ngrok-skip-browser-warning': 'true'
                     }
                 });
 
-                if (!response.ok) throw new Error(`Server error: ${response.status}`);
-                
-                const data = await response.json();
-                // Проверяем разные варианты ключей, которые может вернуть база
-                loadedItems = data.items || data.area_objects || data.data || [];
-
-                if (loadedItems.length === 0) {
-                    document.getElementById('loading-state').innerHTML = `<p class="text-slate-500 text-[10px] font-black uppercase">Нет объектов для проверки</p>`;
-                    return;
+                if (!response.ok) {
+                    throw new Error(`SERVER_ERROR_${response.status}`);
                 }
 
-                render(loadedItems);
+                const data = await response.json();
+                console.log("Server Response:", data);
+
+                // Пытаемся найти данные в любом из возможных ключей
+                const items = data.items || data.area_objects || data.data || (Array.isArray(data) ? data : null);
+
+                if (!items || items.length === 0) {
+                    throw new Error("EMPTY_DATA_FROM_SERVER");
+                }
+
+                render(items);
             } catch (err) {
-                console.error("Load Error:", err);
-                document.getElementById('loading-state').innerHTML = `
-                    <p class="text-red-500 text-[10px] font-black uppercase">Ошибка загрузки</p>
-                    <p class="text-[8px] opacity-50">${err.message}</p>
-                `;
+                console.error(err);
+                document.getElementById('error-msg').className = "text-red-500";
+                document.getElementById('error-msg').innerText = `ОШИБКА: ${err.message}`;
+                debug.innerText += ` | Fail: ${err.message}`;
             }
         }
 
         function render(items) {
             const container = document.getElementById('checklist-container');
             container.innerHTML = items.map((item, index) => {
-                // Обрабатываем объект из Supabase (он может быть строкой или объектом с полем Area_object)
-                const name = item.Area_object || item.area_object || (typeof item === 'string' ? item : 'Unknown');
-                const category = item.Category || item.category || "General";
-                
+                const name = item.Area_object || item.area_object || (typeof item === 'string' ? item : 'Unnamed');
                 return `
-                    <div class="glass-card p-5">
-                        <p class="text-[8px] opacity-40 uppercase font-black mb-1">${category}</p>
-                        <p class="text-[12px] text-blue-400 font-black uppercase mb-4">${name}</p>
-                        <div class="grid grid-cols-3 gap-2 mb-4">
-                            <label>
-                                <input type="radio" name="status-${index}" value="chk_norm" checked class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-green-500 uppercase">${t('chk_norm')}</div>
-                            </label>
-                            <label>
-                                <input type="radio" name="status-${index}" value="chk_warn" class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-yellow-500 uppercase">${t('chk_warn')}</div>
-                            </label>
-                            <label>
-                                <input type="radio" name="status-${index}" value="chk_err" class="status-check hidden">
-                                <div class="status-label border border-white/5 rounded-xl py-2 text-center bg-white/5 text-[8px] font-black text-red-500 uppercase">${t('chk_err')}</div>
-                            </label>
+                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                        <p class="text-blue-400 text-xs font-bold uppercase">${name}</p>
+                        <div class="flex gap-2 mt-3">
+                            <div class="flex-1 py-2 text-center bg-green-500/20 text-green-500 text-[10px] rounded-lg border border-green-500/30">NORM</div>
+                            <div class="flex-1 py-2 text-center bg-white/5 text-slate-500 text-[10px] rounded-lg border border-white/10">WARN</div>
+                            <div class="flex-1 py-2 text-center bg-white/5 text-slate-500 text-[10px] rounded-lg border border-white/10">ERR</div>
                         </div>
-                        <input type="text" id="note-${index}" placeholder="${t('chk_comment')}" class="text-[12px]">
                     </div>
                 `;
             }).join('');
-            
             document.getElementById('loading-state').classList.add('hidden');
-            document.getElementById('checklist-container').classList.remove('hidden');
-            document.getElementById('footer-section').classList.remove('hidden');
-        }
-
-        async function sendFullReport() {
-            const btn = document.getElementById('btn-send-report');
-            btn.disabled = true;
-            btn.innerText = "ОТПРАВКА...";
-
-            const reportItems = loadedItems.map((item, index) => ({
-                name: item.Area_object || item.area_object || (typeof item === 'string' ? item : 'Unknown'),
-                status: document.querySelector(`input[name="status-${index}"]:checked`).value,
-                note: document.getElementById(`note-${index}`).value
-            }));
-
-            try {
-                const res = await fetch(`${API_BASE}/api/submit_checklist`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Telegram-Init-Data': tg.initData || ''
-                    },
-                    body: JSON.stringify({
-                        user_id: USER_INFO.user_id,
-                        complex_id: USER_INFO.complex_id,
-                        object_name: t('chk_title'),
-                        items: reportItems,
-                        timestamp: new Date().toLocaleString('ru-RU'),
-                        lang: lang
-                    })
-                });
-                
-                if (res.ok) {
-                    btn.innerText = "ОТПРАВЛЕНО";
-                    btn.style.background = "#22c55e";
-                    tg.HapticFeedback.notificationOccurred('success');
-                    setTimeout(() => goBack(), 1500);
-                } else {
-                    throw new Error("Submit failed");
-                }
-            } catch (e) {
-                console.error(e);
-                tg.showAlert("Ошибка при отправке отчета");
-                btn.disabled = false;
-                btn.innerText = t('chk_send');
-            }
-        }
-
-        function goBack() {
-            window.location.href = `index.html?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`;
+            container.classList.remove('hidden');
         }
 
         init();
