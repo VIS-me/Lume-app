@@ -97,7 +97,8 @@
                 loadedItems = (data.items || []).filter(item => {
                     const name = item.Area_object || item.area_object || "";
                     const nameStr = String(name).trim();
-                    return nameStr !== "" && nameStr.toUpperCase() !== "NULL";
+                    const isInvalid = nameStr === "" || nameStr.toUpperCase() === "NULL" || nameStr === "Зона не указана";
+                    return !isInvalid;
                 });
 
                 if (loadedItems.length === 0) {
