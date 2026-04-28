@@ -94,7 +94,10 @@
                 if (!response.ok) throw new Error(`Server Error: ${response.status}`);
                 
                 const data = await response.json();
-                loadedItems = data.items || [];
+                loadedItems = (data.items || []).filter(item => {
+                    const name = item.Area_object || item.area_object || "";
+                    return name.trim() !== "";
+                });
 
                 if (loadedItems.length === 0) {
                     throw new Error("Нет данных в таблице services");
