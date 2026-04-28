@@ -171,7 +171,7 @@ const tg = window.Telegram.WebApp;
                     document.getElementById('admin-panel-btn')?.classList.remove('hidden');
                 }
                 
-                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant') || roleAdminBlock.includes('engineer')) {
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
                     showAdminBlock = true;
                     document.getElementById('t-debtors-list')?.classList.remove('hidden');
                 }
