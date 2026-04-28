@@ -171,7 +171,7 @@ const tg = window.Telegram.WebApp;
                     document.getElementById('admin-panel-btn')?.classList.remove('hidden');
                 }
                 
-                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant') || roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-debtors-list')?.classList.remove('hidden');
                 }
@@ -366,7 +366,7 @@ const tg = window.Telegram.WebApp;
                     let btns = `<div class="flex gap-2 mb-6">`;
                     
                     const canSeeArchive = true; // both residents and privileged can see archive, filtered by backend
-                    const canSeePdf = roleLower.includes('director') || roleLower.includes('administrator') || roleLower.includes('engineer');
+                    const canSeePdf = roleLower.includes('director') || roleLower.includes('administrator') || roleLower.includes('engineer') || roleLower.includes('accountant');
                     
                     btns += `<button onclick="toggleArchive()" class="flex-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl text-[10px] font-black uppercase text-center transition-all ${showingArchive ? 'text-blue-400 border border-blue-400/50' : 'text-slate-300'}">${showingArchive ? t('active_btn') : t('archive_btn')}</button>`;
                     
