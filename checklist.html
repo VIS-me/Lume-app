@@ -96,7 +96,8 @@
                 const data = await response.json();
                 loadedItems = (data.items || []).filter(item => {
                     const name = item.Area_object || item.area_object || "";
-                    return name.trim() !== "";
+                    const nameStr = String(name).trim();
+                    return nameStr !== "" && nameStr.toUpperCase() !== "NULL";
                 });
 
                 if (loadedItems.length === 0) {
