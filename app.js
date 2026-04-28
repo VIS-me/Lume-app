@@ -848,8 +848,8 @@ const tg = window.Telegram.WebApp;
                 let filteredItems = [];
                 if (data.items) {
                     filteredItems = isServices 
-                        ? data.items.filter(i => i.name && i.name.trim() !== '')
-                        : data.items.filter(i => i.area_object && i.area_object.trim() !== '');
+                        ? data.items.filter(i => i.name && String(i.name).trim() !== '' && String(i.name).toUpperCase() !== 'NULL')
+                        : data.items.filter(i => i.area_object && String(i.area_object).trim() !== '' && String(i.area_object).toUpperCase() !== 'NULL');
                 }
                 
                 let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${title}</h2>
