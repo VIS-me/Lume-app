@@ -315,7 +315,9 @@ const tg = window.Telegram.WebApp;
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    tg.showAlert(`Файл успешно загружен и обработан. Обновлено должников: ${result.updated_count || 0}`);
+                    const data = result.data || {};
+                    const msg = `Файл успешно загружен.\nСтрок обработано: ${data.total_rows || 0}\nНайдено апартаментов: ${data.found_apts || 0}\nОбновлено должников: ${data.updated || 0}`;
+                    tg.showAlert(msg);
                     fetchData(); // reload debtors
                 } else {
                     tg.showAlert(result.error || "Ошибка загрузки");
