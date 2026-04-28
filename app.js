@@ -293,6 +293,40 @@ const tg = window.Telegram.WebApp;
         const sendPdfReport = () => {
             apiRequest(ENDPOINTS.report, {}, t('success'));
         };
+
+        const uploadFinances = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            tg.MainButton.setText("Загрузка файла...").show();
+            
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("user_id", APP_CONFIG.user_id);
+            formData.append("complex_id", APP_CONFIG.complex_id);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload_finances`, {
+                    method: 'POST',
+                    headers: { 'X-Telegram-Init-Data': tg.initData || '' },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    tg.showAlert(`Файл успешно загружен и обработан. Обновлено должников: ${result.updated_count || 0}`);
+                    fetchData(); // reload debtors
+                } else {
+                    tg.showAlert(result.error || "Ошибка загрузки");
+                }
+            } catch (err) {
+                tg.showAlert("Ошибка: " + err.message);
+            } finally {
+                tg.MainButton.hide();
+                event.target.value = ""; // reset input
+            }
+        };
         
         function openChecklist() {
             const url = `checklist.html?user_id=${APP_CONFIG.user_id}&complex_id=${APP_CONFIG.complex_id}`;
@@ -344,7 +378,8 @@ const tg = window.Telegram.WebApp;
                             <button onclick="openModal('payment-reminders')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pay_remind_title') || 'Remind'}</button>
                             <button onclick="openModal('pdf-report-confirm')" class="w-full py-3 bg-blue-600/20 border border-blue-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-blue-400 active:bg-blue-600/40">${t('pdf_title') || 'PDF Report'}</button>
                         </div>
-                        <button onclick="tg.showAlert('В разработке')" class="w-full py-3 mb-6 bg-emerald-600/20 border border-emerald-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-emerald-400 active:bg-emerald-600/40">LOAD (CSV/EXCEL)</button>
+                        <input type="file" id="finance-upload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden" onchange="uploadFinances(event)">
+                        <button onclick="document.getElementById('finance-upload').click()" class="w-full py-3 mb-6 bg-emerald-600/20 border border-emerald-500/30 rounded-xl font-black uppercase text-[10px] tracking-widest text-emerald-400 active:bg-emerald-600/40">LOAD (CSV/EXCEL)</button>
                         <div class="space-y-2">`;
                         
                     const debtFiltered = (cachedData?.all_debtors || []).filter(d => parseFloat(String(d.Total_Debt || "0").replace(',', '.')) > 0);
