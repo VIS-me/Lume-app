@@ -6,34 +6,12 @@
     <title>Lume Checklist</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        body { background: #0f111a; color: white; font-family: sans-serif; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2rem;
-        }
-        /* Исправлено: добавление рамки при выборе статуса */
         .status-check:checked + .status-label { 
             border-color: #0088cc !important; 
             background: rgba(0, 136, 204, 0.2); 
-            color: white;
-        }
-        input, textarea {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 0.8rem;
-            color: white;
-            width: 100%;
-            outline: none;
-            font-size: 14px;
-        }
-        .btn-send {
-            background: #0088cc;
-            box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.3);
+            color: var(--text-main);
         }
         .loader {
             border: 2px solid rgba(255,255,255,0.1);
@@ -46,26 +24,26 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 pb-12">
+<body class="theme-bg-main theme-text-main font-sans min-h-screen p-6 pb-24">
 
     <div class="flex items-center justify-between mb-8">
-        <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full border border-white/10">
+        <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center theme-glass-btn rounded-full active:opacity-70 transition-opacity">
             <span class="text-xl">←</span>
         </button>
-        <h1 class="text-lg font-bold italic">Technical Checklist</h1>
+        <h1 class="text-lg font-bold italic text-blue-400">Technical Checklist</h1>
         <div class="w-10"></div>
     </div>
 
     <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
         <div class="loader"></div>
-        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Синхронизация с базой объектов...</p>
+        <p class="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500">Синхронизация...</p>
     </div>
 
     <div id="checklist-container" class="space-y-6 hidden">
         </div>
 
     <div id="footer-section" class="hidden">
-        <button id="submit-btn" onclick="sendFullReport()" class="w-full mt-8 py-4 btn-send rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all">
+        <button id="submit-btn" onclick="sendFullReport()" class="w-full mt-8 py-4 bg-blue-600 rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-[0.98] transition-all text-white">
             Отправить отчет
         </button>
     </div>
@@ -74,8 +52,17 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        function applyTheme() {
+            if (tg.colorScheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+        applyTheme();
+        tg.onEvent('themeChanged', applyTheme);
+
         const API_BASE = "https://sinuate-inez-proempire.ngrok-free.dev";
-        // Важно: берем объекты через API_BASE + /api/admin_items, как в последних правках бэкенда
         const API_ITEMS = `${API_BASE}/api/admin_items`;
         const API_SUBMIT = `${API_BASE}/api/submit_checklist`;
         
@@ -94,7 +81,6 @@
             }
 
             try {
-                // ПЕРЕДАЕМ user_id и complex_id, чтобы избежать ошибки bigint: "None"
                 const response = await fetch(`${API_ITEMS}?user_id=${USER_INFO.user_id}&complex_id=${USER_INFO.complex_id}`, {
                     headers: { 
                         'ngrok-skip-browser-warning': 'true',
@@ -105,7 +91,6 @@
                 if (!response.ok) throw new Error(`Server Error: ${response.status}`);
                 
                 const data = await response.json();
-                // Бэкенд возвращает объекты в поле items. Используем поле area_object.
                 loadedItems = data.items || [];
 
                 if (loadedItems.length === 0) {
@@ -125,23 +110,23 @@
             const container = document.getElementById('checklist-container');
             
             container.innerHTML = items.map((item, index) => {
-                const name = item.area_object || "Без названия";
+                const name = item.Area_object || item.area_object || "Без названия";
                 return `
                     <div class="glass-card p-5">
-                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4">${name}</p>
+                        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-4 border-b border-white/5 pb-2">${name}</p>
                         
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             ${['Норма', 'Внимание', 'Авария'].map(status => `
                                 <label class="relative cursor-pointer">
                                     <input type="radio" name="status-${index}" value="${status}" ${status === 'Норма' ? 'checked' : ''} class="status-check hidden">
-                                    <div class="status-label border border-white/5 rounded-xl py-2 text-center transition-all bg-white/5">
+                                    <div class="status-label border border-white/10 rounded-xl py-2 text-center transition-all bg-black/10">
                                         <span class="text-[8px] font-black uppercase ${getStatusColor(status)}">${status}</span>
                                     </div>
                                 </label>
                             `).join('')}
                         </div>
 
-                        <input type="text" id="note-${index}" placeholder="Примечание к объекту..." class="text-[12px]">
+                        <input type="text" id="note-${index}" placeholder="Примечание к объекту..." class="text-[12px] bg-transparent border-b border-white/10 rounded-none px-1 pb-1">
                     </div>
                 `;
             }).join('');
@@ -163,7 +148,7 @@
             submitBtn.innerText = "ОТПРАВКА...";
             
             const items = loadedItems.map((item, index) => ({
-                name: item.area_object,
+                name: item.Area_object || item.area_object || "Без названия",
                 status: document.querySelector(`input[name="status-${index}"]:checked`).value,
                 note: document.getElementById(`note-${index}`).value
             }));
