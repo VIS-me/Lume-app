@@ -904,11 +904,11 @@ const tg = window.Telegram.WebApp;
                 let filteredItems = [];
                 if (data.items) {
                     if (isServices) {
-                        filteredItems = data.items.filter(i => i.name && !i.is_finance && String(i.name).trim() !== '' && String(i.name).toUpperCase() !== 'NULL' && String(i.name) !== 'Зона не указана');
+                        filteredItems = data.items.filter(i => i.name && (!i.is_finance || i.is_finance === "false" || i.is_finance === "FALSE" || i.is_finance === 0) && String(i.name).trim() !== '' && String(i.name).toUpperCase() !== 'NULL' && String(i.name) !== 'Зона не указана');
                     } else if (isChecklists) {
                         filteredItems = data.items.filter(i => i.area_object && String(i.area_object).trim() !== '' && String(i.area_object).toUpperCase() !== 'NULL' && String(i.area_object) !== 'Зона не указана');
                     } else if (isFinances) {
-                        filteredItems = data.items.filter(i => i.is_finance === true);
+                        filteredItems = data.items.filter(i => i.is_finance === true || i.is_finance === "true" || i.is_finance === "TRUE" || i.is_finance === 1);
                     }
                 }
                 
