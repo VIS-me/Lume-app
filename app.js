@@ -161,12 +161,14 @@ const tg = window.Telegram.WebApp;
                         detailsContainer.innerHTML = '';
                         if (f.services_data) {
                             for (const [key, val] of Object.entries(f.services_data)) {
-                                detailsContainer.innerHTML += `
-                                    <div class="flex justify-between finance-item theme-text-main">
-                                        <span class="text-xs font-medium uppercase">${key}</span>
-                                        <span class="text-sm font-bold">${val} ${cur}</span>
-                                    </div>
-                                `;
+                                if (parseFloat(val) !== 0) {
+                                    detailsContainer.innerHTML += `
+                                        <div class="flex justify-between finance-item theme-text-main">
+                                            <span class="text-xs font-medium uppercase">${key}</span>
+                                            <span class="text-sm font-bold">${val} ${cur}</span>
+                                        </div>
+                                    `;
+                                }
                             }
                         }
                     }
