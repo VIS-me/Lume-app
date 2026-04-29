@@ -892,14 +892,24 @@ const tg = window.Telegram.WebApp;
                 if (data.error) throw new Error(data.error);
                 
                 const isServices = type === 'services';
-                const title = isServices ? "Перечень услуг (жильцам)" : "Списки чеклиста (охране)";
-                const addPlaceholder = isServices ? "Название (например: Клининг)" : "Название зоны (например: Бассейн)";
+                const isChecklists = type === 'checklists';
+                const isFinances = type === 'finances';
+                
+                let title = isServices ? "Перечень услуг (жильцам)" : "Списки чеклиста (охране)";
+                if (isFinances) title = "Финансовые категории";
+                
+                const addPlaceholder = isServices ? "Название (например: Клининг)" : isFinances ? "Категория (например: Паркинг)" : "Название зоны (например: Бассейн)";
+                const addDescPlaceholder = isFinances ? "Ключевые слова через запятую (например: garaž, garah)" : "Описание (необязательно, например: 15 EUR/час)";
                 
                 let filteredItems = [];
                 if (data.items) {
-                    filteredItems = isServices 
-                        ? data.items.filter(i => i.name && String(i.name).trim() !== '' && String(i.name).toUpperCase() !== 'NULL' && String(i.name) !== 'Зона не указана')
-                        : data.items.filter(i => i.area_object && String(i.area_object).trim() !== '' && String(i.area_object).toUpperCase() !== 'NULL' && String(i.area_object) !== 'Зона не указана');
+                    if (isServices) {
+                        filteredItems = data.items.filter(i => i.name && !i.is_finance && String(i.name).trim() !== '' && String(i.name).toUpperCase() !== 'NULL' && String(i.name) !== 'Зона не указана');
+                    } else if (isChecklists) {
+                        filteredItems = data.items.filter(i => i.area_object && String(i.area_object).trim() !== '' && String(i.area_object).toUpperCase() !== 'NULL' && String(i.area_object) !== 'Зона не указана');
+                    } else if (isFinances) {
+                        filteredItems = data.items.filter(i => i.is_finance === true);
+                    }
                 }
                 
                 let html = `<h2 class="text-xl font-bold mb-6 italic text-blue-400">${title}</h2>
@@ -907,8 +917,12 @@ const tg = window.Telegram.WebApp;
                 
                 if (filteredItems.length > 0) {
                     filteredItems.forEach(i => {
-                        const displayName = isServices ? i.name : i.area_object;
-                        const desc = isServices && i.description ? `<p class="text-slate-400 text-xs mt-1">${i.description}</p>` : '';
+                        const displayName = isFinances ? i.name : (isServices ? i.name : i.area_object);
+                        let desc = isServices && i.description ? `<p class="text-slate-400 text-xs mt-1">${i.description}</p>` : '';
+                        if (isFinances && i.keywords) {
+                            desc = `<p class="text-slate-400 text-xs mt-1 italic">Ключевые слова: ${i.keywords}</p>`;
+                        }
+                        
                         html += `
                             <div class="p-3 theme-glass-btn rounded-2xl flex justify-between items-center">
                                 <div>
@@ -928,7 +942,7 @@ const tg = window.Telegram.WebApp;
                 <h3 class="text-sm font-bold mb-3 italic text-blue-400">Добавить</h3>
                 <div class="space-y-3">
                     <input type="text" id="add-item-name" class="text-sm" placeholder="${addPlaceholder}">
-                    ${isServices ? `<input type="text" id="add-item-desc" class="text-sm" placeholder="Описание (необязательно, например: 15 EUR/час)">` : ''}
+                    ${(isServices || isFinances) ? `<input type="text" id="add-item-desc" class="text-sm" placeholder="${addDescPlaceholder}">` : ''}
                     <button onclick="saveAdminItem('${comp_id}', '${type}')" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 active:bg-blue-700">ДОБАВИТЬ</button>
                 </div>`;
                 
@@ -940,8 +954,9 @@ const tg = window.Telegram.WebApp;
         
         async function saveAdminItem(comp_id, type) {
             const isServices = type === 'services';
+            const isFinances = type === 'finances';
             const nameField = document.getElementById('add-item-name').value;
-            const descField = isServices ? document.getElementById('add-item-desc').value : '';
+            const descField = (isServices || isFinances) ? document.getElementById('add-item-desc').value : '';
             
             if (!nameField.trim()) {
                 tg.showAlert("Заполните название!");
@@ -952,9 +967,11 @@ const tg = window.Telegram.WebApp;
                 user_id: APP_CONFIG.user_id,
                 action: 'add',
                 complex_id: comp_id,
-                name: isServices ? nameField : null,
-                area_object: isServices ? null : nameField,
-                description: isServices ? descField : null
+                name: (isServices || isFinances) ? nameField : null,
+                area_object: (isServices || isFinances) ? null : nameField,
+                description: isServices ? descField : null,
+                is_finance: isFinances ? true : false,
+                keywords: isFinances ? descField : null
             };
             
             tg.MainButton.setText("СОХРАНЕНИЕ...").show();
