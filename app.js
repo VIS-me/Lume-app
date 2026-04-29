@@ -908,7 +908,7 @@ const tg = window.Telegram.WebApp;
                     } else if (isChecklists) {
                         filteredItems = data.items.filter(i => i.area_object && String(i.area_object).trim() !== '' && String(i.area_object).toUpperCase() !== 'NULL' && String(i.area_object) !== 'Зона не указана');
                     } else if (isFinances) {
-                        filteredItems = data.items.filter(i => i.is_finance === true || i.is_finance === "true" || i.is_finance === "TRUE" || i.is_finance === 1);
+                        filteredItems = data.items.filter(i => i.is_finance && String(i.is_finance).trim() !== '' && String(i.is_finance).toUpperCase() !== 'NULL' && String(i.is_finance) !== 'false' && String(i.is_finance) !== 'FALSE');
                     }
                 }
                 
@@ -917,7 +917,7 @@ const tg = window.Telegram.WebApp;
                 
                 if (filteredItems.length > 0) {
                     filteredItems.forEach(i => {
-                        const displayName = isFinances ? i.name : (isServices ? i.name : i.area_object);
+                        const displayName = isFinances ? i.is_finance : (isServices ? i.name : i.area_object);
                         let desc = isServices && i.description ? `<p class="text-slate-400 text-xs mt-1">${i.description}</p>` : '';
                         if (isFinances && i.keywords) {
                             desc = `<p class="text-slate-400 text-xs mt-1 italic">Ключевые слова: ${i.keywords}</p>`;
@@ -955,6 +955,7 @@ const tg = window.Telegram.WebApp;
         async function saveAdminItem(comp_id, type) {
             const isServices = type === 'services';
             const isFinances = type === 'finances';
+            const isChecklists = type === 'checklists';
             const nameField = document.getElementById('add-item-name').value;
             const descField = (isServices || isFinances) ? document.getElementById('add-item-desc').value : '';
             
@@ -967,10 +968,10 @@ const tg = window.Telegram.WebApp;
                 user_id: APP_CONFIG.user_id,
                 action: 'add',
                 complex_id: comp_id,
-                name: (isServices || isFinances) ? nameField : null,
-                area_object: (isServices || isFinances) ? null : nameField,
+                name: isServices ? nameField : null,
+                area_object: isChecklists ? nameField : null,
                 description: isServices ? descField : null,
-                is_finance: isFinances ? true : false,
+                is_finance: isFinances ? nameField : null,
                 keywords: isFinances ? descField : null
             };
             
