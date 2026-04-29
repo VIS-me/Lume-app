@@ -155,9 +155,22 @@ const tg = window.Telegram.WebApp;
                     const cur = f.currency || "€";
                     document.querySelectorAll('.currency-label').forEach(el => el.innerText = cur);
                     document.getElementById('p-total-debt').innerText = f.Total_Debt || "0.00";
-                    document.getElementById('debt-maintenance').innerText = `${f.Maintenance_Fee || "0.00"} ${cur}`;
-                    document.getElementById('debt-hotwater').innerText = `${f.Hot_Water_Debt || "0.00"} ${cur}`;
-                    document.getElementById('debt-garage').innerText = `${f.Garage_Debt || "0.00"} ${cur}`;
+                    
+                    const detailsContainer = document.getElementById('finance-details');
+                    if (detailsContainer) {
+                        detailsContainer.innerHTML = '';
+                        if (f.services_data) {
+                            for (const [key, val] of Object.entries(f.services_data)) {
+                                detailsContainer.innerHTML += `
+                                    <div class="flex justify-between finance-item theme-text-main">
+                                        <span class="text-xs font-medium uppercase">${key}</span>
+                                        <span class="text-sm font-bold">${val} ${cur}</span>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                    
                     document.getElementById('debt-paid').innerText = `${f.Paid_Amount || "0.00"} ${cur}`;
                     document.getElementById('payment-date').innerText = f.last_update || "--";
                 }
