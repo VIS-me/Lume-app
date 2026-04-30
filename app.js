@@ -102,6 +102,16 @@ const tg = window.Telegram.WebApp;
         };
 
         let cachedData = null;
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
         let isStaff = false;
         let showingArchive = false;
         let roleLower = "";
@@ -162,8 +172,8 @@ const tg = window.Telegram.WebApp;
                             for (const [key, val] of Object.entries(f.services_data)) {
                                 detailsContainer.innerHTML += `
                                     <div class="flex justify-between finance-item theme-text-main">
-                                        <span class="text-xs font-medium uppercase">${key}</span>
-                                        <span class="text-sm font-bold">${val} ${cur}</span>
+                                        <span class="text-xs font-medium uppercase">${escapeHTML(key)}</span>
+                                        <span class="text-sm font-bold">${escapeHTML(val)} ${cur}</span>
                                     </div>
                                 `;
                             }
@@ -449,7 +459,7 @@ const tg = window.Telegram.WebApp;
                             // Email
                             btnTxt = 'Email';
                             btnCol = 'bg-slate-600';
-                            onClickAction = `window.location.href='mailto:${val}'`;
+                            onClickAction = `window.location.href='mailto:${escapeHTML(val)}'`;
                         } else if (val.startsWith('@') || val.toLowerCase().includes('t.me/')) {
                             // Telegram Username / Link
                             const tgUsername = val.replace('@', '').replace('https://t.me/', '').replace('http://t.me/', '').replace('t.me/', '');
@@ -466,7 +476,7 @@ const tg = window.Telegram.WebApp;
 
                         html += `
                             <div class="p-2 theme-glass-btn rounded-3xl mb-3 flex justify-between items-center">
-                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm theme-text-main">${val}</span></div>
+                                <div class="flex flex-col ml-2"><p class="text-[8px] uppercase font-black text-slate-500">${m.Type}</p><span class="font-bold text-sm theme-text-main">${escapeHTML(val)}</span></div>
                                 <button onclick="${onClickAction}" class="${btnCol} text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase active:opacity-50">${btnTxt}</button>
                             </div>`;
                     });
@@ -512,6 +522,14 @@ const tg = window.Telegram.WebApp;
 
         async function fetchSuperadminData() {
             try {
+                const cacheKey = 'complexesData_' + APP_CONFIG.user_id;
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                renderSuperAdmin(data.complexes);
+                    return;
+                }
                 const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -683,6 +701,14 @@ const tg = window.Telegram.WebApp;
                 title.innerText = "Загрузка...";
                 switchPage('superadmin-edit'); // temporarily show it empty/loading
                 
+                const cacheKey = 'complexesData_' + APP_CONFIG.user_id;
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                renderSuperAdmin(data.complexes);
+                    return;
+                }
                 const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -777,7 +803,7 @@ const tg = window.Telegram.WebApp;
                                     <p class="theme-text-main text-sm font-bold">${c.name || c.name_or_type || 'N/A'}</p>
                                     <p class="text-slate-400 text-xs">${c.value || c.contact_value || 'N/A'}</p>
                                 </div>
-                                <button onclick="deleteAdminContact('${c.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40">Del</button>
+                                <button onclick="deleteAdminContact('${escapeHTML(c.id)}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40">Del</button>
                             </div>
                         `;
                     });
@@ -883,6 +909,14 @@ const tg = window.Telegram.WebApp;
 
         async function fetchAdminItems(comp_id, type) {
             try {
+                const cacheKeyItems = 'adminItems_' + comp_id + '_' + type;
+                const cachedItems = sessionStorage.getItem(cacheKeyItems);
+                if (cachedItems) {
+                    const data = JSON.parse(cachedItems);
+                    sessionStorage.setItem('adminItems_' + comp_id + '_' + type, JSON.stringify(data));
+                renderAdminItems(data.items, comp_id, type);
+                    return;
+                }
                 const response = await fetch(`${ENDPOINTS.adminItems}?user_id=${APP_CONFIG.user_id}&complex_id=${comp_id}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
