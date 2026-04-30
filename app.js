@@ -63,10 +63,9 @@ const tg = window.Telegram.WebApp;
             document.getElementById('t-apartment-label').innerText = t('apartment');
             document.getElementById('t-to-pay').innerText = t('to_pay');
             document.getElementById('t-total').innerText = t('total');
-            document.getElementById('t-maintenance').innerText = t('maintenance');
-            document.getElementById('t-hot-water').innerText = t('hot_water');
-            document.getElementById('t-garage').innerText = t('garage');
-            document.getElementById('t-paid').innerText = t('paid');
+            document.getElementById('t-maintenance') && (document.getElementById('t-maintenance').innerText = t('maintenance'));
+            document.getElementById('t-hot-water') && (document.getElementById('t-hot-water').innerText = t('hot_water'));
+            document.getElementById('t-garage') && (document.getElementById('t-garage').innerText = t('garage'));
             document.getElementById('t-close').innerText = t('close');
             document.getElementById('t-home-nav').innerText = t('home_nav');
             document.getElementById('t-tasks-nav').innerText = t('tasks_nav');
@@ -161,19 +160,16 @@ const tg = window.Telegram.WebApp;
                         detailsContainer.innerHTML = '';
                         if (f.services_data) {
                             for (const [key, val] of Object.entries(f.services_data)) {
-                                if (parseFloat(val) !== 0) {
-                                    detailsContainer.innerHTML += `
-                                        <div class="flex justify-between finance-item theme-text-main">
-                                            <span class="text-xs font-medium uppercase">${key}</span>
-                                            <span class="text-sm font-bold">${val} ${cur}</span>
-                                        </div>
-                                    `;
-                                }
+                                detailsContainer.innerHTML += `
+                                    <div class="flex justify-between finance-item theme-text-main">
+                                        <span class="text-xs font-medium uppercase">${key}</span>
+                                        <span class="text-sm font-bold">${val} ${cur}</span>
+                                    </div>
+                                `;
                             }
                         }
                     }
                     
-                    document.getElementById('debt-paid').innerText = `${f.Paid_Amount || "0.00"} ${cur}`;
                     document.getElementById('payment-date').innerText = f.last_update || "--";
                 }
 
