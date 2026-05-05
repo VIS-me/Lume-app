@@ -1077,16 +1077,26 @@ const tg = window.Telegram.WebApp;
                             <div class="space-y-3 mb-6" id="admin-roles-list">`;
                 
                 if (data.roles && data.roles.length > 0) {
+                    data.roles.sort((a, b) => {
+                        const aSpecial = a.apt === '00111001' || a.apt === '00110011';
+                        const bSpecial = b.apt === '00111001' || b.apt === '00110011';
+                        if (aSpecial && !bSpecial) return -1;
+                        if (!aSpecial && bSpecial) return 1;
+                        return 0;
+                    });
                     data.roles.forEach(r => {
+                        const isSpecial = r.apt === '00111001' || r.apt === '00110011';
                         const displayName = r.full_name || r.username || `User ${r.id}`;
                         const displayApt = r.apt ? ` (Апт: ${r.apt})` : '';
+                        const bgClass = isSpecial ? 'bg-orange-500/20 border border-orange-500/30' : 'theme-glass-btn';
+                        const usernameStr = escapeHTML(r.username || '');
                         html += `
-                            <div class="p-3 theme-glass-btn rounded-2xl flex justify-between items-center">
+                            <div class="p-3 ${bgClass} rounded-2xl flex justify-between items-center cursor-pointer" onclick="document.getElementById('add-role-username').value='${usernameStr}'">
                                 <div>
-                                    <p class="theme-text-main text-sm font-bold flex items-center gap-1">${displayName} <span class="text-xs text-slate-500">${displayApt}</span></p>
-                                    <p class="text-[10px] uppercase font-black text-slate-400 mt-1">@${r.username || 'unknown'} • Роль: <span class="text-blue-400">${r.role || 'user'}</span></p>
+                                    <p class="theme-text-main text-sm font-bold flex items-center gap-1">${escapeHTML(displayName)} <span class="text-xs ${isSpecial ? 'text-orange-400 font-bold' : 'text-slate-500'}">${escapeHTML(displayApt)}</span></p>
+                                    <p class="text-[10px] uppercase font-black text-slate-400 mt-1">@${usernameStr || 'unknown'} • Роль: <span class="text-blue-400">${escapeHTML(r.role || 'user')}</span></p>
                                 </div>
-                                <button onclick="deleteAdminRole('${r.id}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Отвязать</button>
+                                <button onclick="event.stopPropagation(); deleteAdminRole('${escapeHTML(r.id)}', '${comp_id}')" class="bg-red-500/20 text-red-500 text-[10px] font-black uppercase px-3 py-2 rounded-xl active:bg-red-500/40 shrink-0 ml-2">Отвязать</button>
                             </div>
                         `;
                     });
