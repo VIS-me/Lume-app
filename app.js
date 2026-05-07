@@ -186,10 +186,14 @@ const tg = window.Telegram.WebApp;
                 const roleAdminBlock = roleLower;
                 let showAdminBlock = false;
                 
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer') || roleAdminBlock.includes('accountant')) {
+                    showAdminBlock = true;
+                    document.getElementById('admin-panel-btn')?.classList.remove('hidden');
+                }
+
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
-                    document.getElementById('admin-panel-btn')?.classList.remove('hidden');
                 }
                 
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
