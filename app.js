@@ -190,6 +190,7 @@ const tg = window.Telegram.WebApp;
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
                     document.getElementById('admin-panel-btn')?.classList.remove('hidden');
+                    document.getElementById('admin-pricing-btn')?.classList.remove('hidden');
                 }
                 
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
