@@ -186,10 +186,14 @@ const tg = window.Telegram.WebApp;
                 const roleAdminBlock = roleLower;
                 let showAdminBlock = false;
                 
+                if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer') || roleAdminBlock.includes('accountant')) {
+                    showAdminBlock = true;
+                    document.getElementById('admin-panel-btn')?.classList.remove('hidden');
+                }
+
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('engineer')) {
                     showAdminBlock = true;
                     document.getElementById('t-notification')?.classList.remove('hidden');
-                    document.getElementById('admin-panel-btn')?.classList.remove('hidden');
                 }
                 
                 if (roleAdminBlock.includes('director') || roleAdminBlock.includes('administrator') || roleAdminBlock.includes('accountant')) {
@@ -583,6 +587,7 @@ const tg = window.Telegram.WebApp;
             const preview = document.getElementById('sa-edit-logo-preview');
             const rolesBtn = document.getElementById('sa-edit-roles-btn');
             const contactsBtn = document.getElementById('sa-edit-contacts-btn');
+            const financesBtn = document.getElementById('sa-edit-finances-btn');
             const servicesBtn = document.getElementById('sa-edit-services-btn');
             const checklistsBtn = document.getElementById('sa-edit-checklists-btn');
             
@@ -602,16 +607,24 @@ const tg = window.Telegram.WebApp;
             saveBtn.style.display = 'block';
             rolesBtn.style.display = 'block';
             contactsBtn.style.display = 'block';
+            financesBtn.style.display = 'block';
             servicesBtn.style.display = 'block';
             checklistsBtn.style.display = 'block';
 
             const isEngineer = roleLower.includes('engineer');
             const isAdmin = roleLower.includes('director') || roleLower.includes('administrator');
+            const isAccountant = roleLower.includes('accountant');
             
             // Role-based restrictions logic when opening from 'tasks' page
             if (source === 'tasks') {
-                if (isEngineer && !isAdmin) {
-                    // Engineers ONLY can ONLY edit checklists
+                if (isAdmin) {
+                    // Admins see everything except checklists by default, unless they are also engineers
+                    if (!isEngineer) {
+                        checklistsBtn.style.display = 'none';
+                    }
+                } else {
+                    // Not an admin. Check individual permissions.
+                    // By default hide core superadmin fields if not admin
                     saStatusCard.style.display = 'none';
                     saNameCard.style.display = 'none';
                     saCityCard.style.display = 'none';
@@ -620,12 +633,17 @@ const tg = window.Telegram.WebApp;
                     rolesBtn.style.display = 'none';
                     contactsBtn.style.display = 'none';
                     servicesBtn.style.display = 'none';
-                    checklistsBtn.style.display = 'block';
-                } else if (isAdmin && !isEngineer) {
-                    // Director/Admin ONLY can edit anything EXCEPT checklists
-                    checklistsBtn.style.display = 'none';
+                    
+                    // Show checklists only if engineer
+                    if (!isEngineer) {
+                        checklistsBtn.style.display = 'none';
+                    }
+                    
+                    // Show finances only if accountant
+                    if (!isAccountant) {
+                        financesBtn.style.display = 'none';
+                    }
                 }
-                // If both, nothing is blocked!
             }
             
             const inviteBlock = document.getElementById('sa-invite-block');
