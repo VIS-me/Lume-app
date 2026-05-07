@@ -723,8 +723,13 @@ const tg = window.Telegram.WebApp;
                 const cached = sessionStorage.getItem(cacheKey);
                 if (cached) {
                     const data = JSON.parse(cached);
-                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
-                renderSuperAdmin(data.complexes);
+                    const currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
+                    if (currentComplex) {
+                        openSuperadminEdit(currentComplex, 'tasks');
+                    } else {
+                        tg.showAlert("Complex access error");
+                        switchPage('tasks');
+                    }
                     return;
                 }
                 const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
