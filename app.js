@@ -578,6 +578,14 @@ const tg = window.Telegram.WebApp;
             const title = document.getElementById('sa-edit-title');
             const backBtn = document.getElementById('sa-edit-back-btn');
             
+            if (source === 'tasks') {
+                title.innerText = "Admin Panel";
+                title.className = "text-xl font-bold mb-6 italic text-orange-400 uppercase";
+            } else {
+                title.innerText = "Редактирование: " + (complex?.name || '');
+                title.className = "text-xl font-bold mb-6 italic text-purple-400 uppercase";
+            }
+            
             if (backBtn) {
                 backBtn.innerText = source === 'tasks' ? "< НАЗАД К ЗАДАЧАМ" : "< НАЗАД К СПИСКУ";
             }
@@ -650,7 +658,9 @@ const tg = window.Telegram.WebApp;
             const inviteInput = document.getElementById('sa-invite-link');
             
             if (complex) {
-                title.innerText = "Редактирование: " + complex.name;
+                if (source !== 'tasks') {
+                    title.innerText = "Редактирование: " + complex.name;
+                }
                 document.getElementById('sa-edit-id').value = complex.id;
                 document.getElementById('sa-edit-name').value = complex.name || "";
                 document.getElementById('sa-edit-city').value = complex.city || "";
@@ -663,18 +673,6 @@ const tg = window.Telegram.WebApp;
                     } else {
                         inviteBlock.style.display = 'none';
                     }
-                }
-                
-                if (source === 'tasks') {
-                    rolesBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
-                    contactsBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
-                    servicesBtn.style.display = (isEngineer && !isAdmin) ? 'none' : 'block';
-                    checklistsBtn.style.display = (isAdmin && !isEngineer) ? 'none' : 'block';
-                } else {
-                    rolesBtn.style.display = 'block';
-                    contactsBtn.style.display = 'block';
-                    servicesBtn.style.display = 'block';
-                    checklistsBtn.style.display = 'block';
                 }
                 
                 if (complex.logo_url) {
@@ -719,28 +717,35 @@ const tg = window.Telegram.WebApp;
                 title.innerText = "Загрузка...";
                 switchPage('superadmin-edit'); // temporarily show it empty/loading
                 
+                let currentComplex = null;
                 const cacheKey = 'complexesData_' + APP_CONFIG.user_id;
                 const cached = sessionStorage.getItem(cacheKey);
                 if (cached) {
                     const data = JSON.parse(cached);
-                    const currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
-                    if (currentComplex) {
-                        openSuperadminEdit(currentComplex, 'tasks');
-                    } else {
-                        tg.showAlert("Complex access error");
-                        switchPage('tasks');
-                    }
-                    return;
+                    if (data.complexes) currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
                 }
-                const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await response.json();
-                
-                if (data.complexes) {
-                    const currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
-                    if (currentComplex) {
-                        openSuperadminEdit(currentComplex, 'tasks');
+
+                if (!currentComplex) {
+                    try {
+                        const response = await fetch(`${ENDPOINTS.adminComplexes}?user_id=${APP_CONFIG.user_id}`, {
+                            headers: { 'ngrok-skip-browser-warning': 'true' }
+                        });
+                        const data = await response.json();
+                        if (data.complexes) {
+                            currentComplex = data.complexes.find(c => String(c.id) === String(APP_CONFIG.complex_id));
+                        }
+                    } catch(e) {}
+                }
+
+                if (currentComplex) {
+                    openSuperadminEdit(currentComplex, 'tasks');
+                } else {
+                    const roleLower = String(cachedData?.role || "").toLowerCase();
+                    const isAccountant = roleLower.includes('accountant');
+                    const isEngineer = roleLower.includes('engineer');
+                    if (isAccountant || isEngineer) {
+                        // Bypass adminComplexes for restricted roles that only need access to specific admin panel buttons
+                        openSuperadminEdit({ id: APP_CONFIG.complex_id, name: cachedData?.complex_name || 'Complex' }, 'tasks');
                     } else {
                         tg.showAlert("Complex access error");
                         switchPage('tasks');
