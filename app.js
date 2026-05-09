@@ -706,7 +706,9 @@ const tg = window.Telegram.WebApp;
 
         function closeSuperadminEdit() {
             switchPage(returnPageAfterEdit);
-            fetchSuperadminData();
+            if (returnPageAfterEdit === 'superadmin') {
+                fetchSuperadminData();
+            }
         }
 
         async function openAdminPanel() {
